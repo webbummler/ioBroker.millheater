@@ -1,0 +1,37 @@
+{
+	"cli": true,
+	"target": "directory",
+	"adapterName": "millheater",
+	"title": "Mill Heizung",
+	"description": "Mill Heizung über die lokale API integrieren",
+	"expert": "no",
+	"features": [
+		"adapter"
+	],
+	"adminFeatures": [],
+	"type": "climate-control",
+	"startMode": "daemon",
+	"connectionType": "local",
+	"dataSource": "poll",
+	"connectionIndicator": "no",
+	"language": "TypeScript",
+	"nodeVersion": "20",
+	"adminUi": "json",
+	"tools": [
+		"ESLint"
+	],
+	"eslintConfig": "official",
+	"releaseScript": "yes",
+	"devServer": "local",
+	"indentation": "Tab",
+	"quotes": "double",
+	"authorName": "webbummler",
+	"authorGithub": "webbummler",
+	"authorEmail": "moin@webbummler.de",
+	"gitRemoteProtocol": "HTTPS",
+	"gitCommit": "no",
+	"defaultBranch": "main",
+	"license": "MIT License",
+	"dependabot": "yes",
+	"creatorVersion": "3.1.5"
+}
