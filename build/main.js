@@ -24,6 +24,7 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 var utils = __toESM(require("@iobroker/adapter-core"));
 var http = __toESM(require("http"));
 class Millheater extends utils.Adapter {
+  static API_TIMEOUT_MS = 5e3;
   ipAddress = "";
   pollInterval1 = 0;
   pollInterval2 = 0;
@@ -49,7 +50,8 @@ class Millheater extends utils.Adapter {
    */
   async onReady() {
     this.log.info("Mill Heater Adapter started.");
-    this.ipAddress = this.config.ipAddress.trim();
+    const ip = typeof this.config.ip === "string" ? this.config.ip.trim() : "";
+    this.ipAddress = ip;
     this.pollInterval1 = this.config.pollInterval1;
     this.pollInterval2 = this.config.pollInterval2;
     if (!this.ipAddress) {
@@ -57,14 +59,22 @@ class Millheater extends utils.Adapter {
       this.terminate("No IP address for the Mill heater is configured.", utils.EXIT_CODES.INVALID_ADAPTER_CONFIG);
       return;
     }
-    if (!Number.isFinite(this.pollInterval1) || this.pollInterval1 < 1) {
-      this.log.error("Invalid fast polling interval configured.");
-      this.terminate("Invalid fast polling interval configured.", utils.EXIT_CODES.INVALID_ADAPTER_CONFIG);
+    if (!Number.isFinite(this.pollInterval1) || this.pollInterval1 * 1e3 < Millheater.API_TIMEOUT_MS + 1e3) {
+      this.log.error(`Fast polling interval must be at least ${Millheater.API_TIMEOUT_MS + 1} seconds.`);
+      this.terminate(
+        `Fast polling interval must be at least ${Millheater.API_TIMEOUT_MS + 1} seconds.`,
+        utils.EXIT_CODES.INVALID_ADAPTER_CONFIG
+      );
       return;
     }
-    if (!Number.isFinite(this.pollInterval2) || this.pollInterval2 < 1) {
-      this.log.error("Invalid slow polling interval configured.");
-      this.terminate("Invalid slow polling interval configured.", utils.EXIT_CODES.INVALID_ADAPTER_CONFIG);
+    if (!Number.isFinite(this.pollInterval2) || this.pollInterval2 < this.pollInterval1 + Millheater.API_TIMEOUT_MS) {
+      this.log.error(
+        `Slow polling interval must be at least ${this.pollInterval1 + Millheater.API_TIMEOUT_MS} seconds.`
+      );
+      this.terminate(
+        `Slow polling interval must be at least ${this.pollInterval1 + Millheater.API_TIMEOUT_MS} seconds.`,
+        utils.EXIT_CODES.INVALID_ADAPTER_CONFIG
+      );
       return;
     }
     this.log.info("Configuration loaded.");
@@ -93,6 +103,9 @@ class Millheater extends utils.Adapter {
    * HTTP errors, connection errors, timeouts, invalid JSON and
    * unsuccessful API responses are logged and returned as undefined.
    * A valid API response with status "ok" is returned unchanged.
+   * info.connection reflects whether the heater responded to the HTTP request.
+   * It is set to true when an HTTP response is received and to false
+   * for connection errors and timeouts.
    *
    * @param path API endpoint.
    * @param method HTTP method.
@@ -123,6 +136,7 @@ class Millheater extends utils.Adapter {
           response.on("end", () => {
             const statusCode = response.statusCode;
             this.log.debug(`HTTP status for ${path}: ${statusCode != null ? statusCode : "undefined"}`);
+            void this.setState("info.connection", true, true);
             if (statusCode === void 0 || statusCode < 200 || statusCode >= 300) {
               this.log.error(`Mill API request failed for ${path}: HTTP ${statusCode != null ? statusCode : "unknown"}.`);
               if (data.trim()) {
@@ -138,7 +152,7 @@ class Millheater extends utils.Adapter {
             }
             try {
               const parsed = JSON.parse(data);
-              if (!parsed || typeof parsed !== "object") {
+              if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
                 this.log.error(`Invalid API response from ${path}: response is not an object.`);
                 resolve(void 0);
                 return;
@@ -163,10 +177,12 @@ class Millheater extends utils.Adapter {
       );
       request.on("error", (error) => {
         this.log.error(`Error calling ${path}: ${error.message}`);
+        void this.setState("info.connection", false, true);
         resolve(void 0);
       });
-      request.setTimeout(5e3, () => {
+      request.setTimeout(Millheater.API_TIMEOUT_MS, () => {
         this.log.error(`Timeout calling ${path}.`);
+        void this.setState("info.connection", false, true);
         request.destroy();
         resolve(void 0);
       });
@@ -353,7 +369,7 @@ class Millheater extends utils.Adapter {
    * @param value Target temperature.
    */
   async setTemperature(value) {
-    if (value < 5 || value > 35) {
+    if (!Number.isFinite(value) || value < 5 || value > 35) {
       this.log.warn(`Invalid temperature: ${value} \xB0C (allowed: 5-35 \xB0C)`);
       return;
     }
@@ -416,7 +432,7 @@ class Millheater extends utils.Adapter {
    * @param value Temperature calibration offset.
    */
   async setTemperatureCalibrationOffset(value) {
-    if (value < -30 || value > 30) {
+    if (!Number.isFinite(value) || value < -30 || value > 30) {
       this.log.warn(`Invalid temperature calibration offset: ${value} \xB0C (allowed: -30 - +30 \xB0C)`);
       return;
     }
@@ -437,6 +453,25 @@ class Millheater extends utils.Adapter {
    * objects are not overwritten.
    */
   async createObjects() {
+    await this.setObjectNotExistsAsync("info", {
+      type: "channel",
+      common: {
+        name: "Information"
+      },
+      native: {}
+    });
+    await this.setObjectNotExistsAsync("info.connection", {
+      type: "state",
+      common: {
+        name: "Connection",
+        type: "boolean",
+        role: "indicator.connected",
+        read: true,
+        write: false,
+        def: false
+      },
+      native: {}
+    });
     await this.setObjectNotExistsAsync("status", {
       type: "channel",
       common: {
@@ -452,7 +487,7 @@ class Millheater extends utils.Adapter {
           de: "Bezeichnung des Ger\xE4ts/Ger\xE4temodell"
         },
         type: "string",
-        role: "state",
+        role: "info.model",
         read: true,
         write: false
       },
@@ -476,11 +511,11 @@ class Millheater extends utils.Adapter {
       type: "state",
       common: {
         name: {
-          en: "API version number",
-          de: "API Versionsnummer"
+          en: "API/Firmware version number",
+          de: "API-/Firmwareversionsnummer"
         },
         type: "string",
-        role: "state",
+        role: "info.version",
         read: true,
         write: false
       },
@@ -532,7 +567,7 @@ class Millheater extends utils.Adapter {
       common: {
         name: "the information whether device has connection with the cloud",
         type: "boolean",
-        role: "indicator.connected",
+        role: "sensor",
         read: true,
         write: false
       },
@@ -653,7 +688,7 @@ class Millheater extends utils.Adapter {
       common: {
         name: "the heating level in percentage",
         type: "number",
-        role: "level.setting",
+        role: "level",
         read: true,
         write: true,
         states: {
@@ -670,7 +705,7 @@ class Millheater extends utils.Adapter {
       common: {
         name: "percentage of maximum power that heater can use, value in range 10 - 100",
         type: "number",
-        role: "level.setting",
+        role: "level",
         read: true,
         write: true,
         unit: "%",
@@ -684,7 +719,7 @@ class Millheater extends utils.Adapter {
       common: {
         name: "the calibration offset value in Celsius degrees",
         type: "number",
-        role: "value.temperature",
+        role: "level",
         read: true,
         write: true,
         min: -30,

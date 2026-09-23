@@ -1,20 +1,15 @@
 {
 	"common": {
 		"name": "millheater",
-		"version": "0.0.1",
+		"version": "0.0.2",
 		"news": {
+			"0.0.2": {
+				"en": "Object structure improved, Improved adapter stability and validation",
+				"de": "Objektstruktur überarbeitet, Adapterstabilität und Validierung verbessert"
+			},
 			"0.0.1": {
 				"en": "initial release",
-				"de": "Erstveröffentlichung",
-				"ru": "Начальная версия",
-				"pt": "lançamento inicial",
-				"nl": "Eerste uitgave",
-				"fr": "Première version",
-				"it": "Versione iniziale",
-				"es": "Versión inicial",
-				"pl": "Pierwsze wydanie",
-				"uk": "Початкова версія",
-				"zh-cn": "首次出版"
+				"de": "Erstveröffentlichung"
 			}
 		},
 		"titleLang": {
@@ -64,7 +59,7 @@
 		]
 	},
 	"native": {
-		"ipAddress": "",
+		"ip": "",
 		"pollInterval1": 30,
     	"pollInterval2": 86400
 	},

@@ -2,7 +2,7 @@
     "i18n": true,
     "type": "panel",
     "items": {
-        "ipAddress": {
+        "ip": {
             "type": "text",
             "label": "IP-Adresse der Mill-Heizung",
             "help": "IP-Adresse der Mill-Heizung im lokalen Netzwerk.",
@@ -11,7 +11,7 @@
             "md": 6,
             "lg": 6,
             "xl": 6,
-            "validator": "String(data.ipAddress).length > 0",
+            "validator": "String(data.ip).length > 0",
             "validatorErrorText": "Invalid IP address",
             "validatorNoSaveOnError": true
         },
@@ -19,8 +19,9 @@
             "newLine": true,
             "type": "number",
             "label": "Abfrageintervall 1",
-            "help": "Intervall für die normale Abfrage der Mill-Heizung in Sekunden.",
-            "min": 1,
+            "help": "Intervall für die normale (schnelle) Abfrage der Mill-Heizung in Sekunden. Muss mindestens 6 Sekunden betragen (API-Timeout 5 Sekunden + 1 Sekunde)",
+            "min": 6,
+            "step": 1,
             "unit": "s",
             "default": 30,
             "xs": 12,
@@ -32,10 +33,14 @@
         "pollInterval2": {
             "type": "number",
             "label": "Abfrageintervall 2",
-            "help": "Intervall für die zweite, längerfristige Abfrage in Sekunden.",
-            "min": 1,
-            "default": 86400,
+            "help": "Intervall für die zweite, längerfristige (langsame) Abfrage in Sekunden. Muss mindestens Abfrageintervall 1 + 5 Sekunden betragen.",
+            "min": 11,
+            "step": 1,
             "unit": "s",
+            "default": 86400,
+            "validator": "data.pollInterval2 >= data.pollInterval1 + 5",
+            "validatorErrorText": "Abfrageintervall 2 ist zu klein konfiguriert.",
+            "validatorNoSaveOnError": true,
             "xs": 12,
             "sm": 12,
             "md": 6,
