@@ -337,6 +337,7 @@ function createTrackedServer(handler) {
  *
  * @param {object} harness ioBroker test harness
  * @param {number} port Test server port
+ * @param {number} apiTimeout HTTP timeout in seconds
  * @param {number} pollInterval1 First polling interval in seconds
  * @param {number} pollInterval2 Second polling interval in seconds
  * @returns {Promise<void>} Resolves after configuration was changed
@@ -344,12 +345,14 @@ function createTrackedServer(handler) {
 async function configureHarness(
     harness,
     port,
+    apiTimeout = 5,
     pollInterval1 = 60,
     pollInterval2 = 60,
 ) {
     await harness.changeAdapterConfig("millheater", {
         native: {
             ipAddress: `127.0.0.1:${port}`,
+            apiTimeout,
             pollInterval1,
             pollInterval2,
         },

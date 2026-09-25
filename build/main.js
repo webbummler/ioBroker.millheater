@@ -24,8 +24,8 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 var utils = __toESM(require("@iobroker/adapter-core"));
 var http = __toESM(require("http"));
 class Millheater extends utils.Adapter {
-  static API_TIMEOUT_MS = 5e3;
   ipAddress = "";
+  apiTimeout = 0;
   pollInterval1 = 0;
   pollInterval2 = 0;
   heaterName = "";
@@ -52,6 +52,7 @@ class Millheater extends utils.Adapter {
     this.log.info("Mill Heater Adapter started.");
     const ip = typeof this.config.ip === "string" ? this.config.ip.trim() : "";
     this.ipAddress = ip;
+    this.apiTimeout = this.config.apiTimeout;
     this.pollInterval1 = this.config.pollInterval1;
     this.pollInterval2 = this.config.pollInterval2;
     if (!this.ipAddress) {
@@ -59,26 +60,30 @@ class Millheater extends utils.Adapter {
       this.terminate("No IP address for the Mill heater is configured.", utils.EXIT_CODES.INVALID_ADAPTER_CONFIG);
       return;
     }
-    if (!Number.isFinite(this.pollInterval1) || this.pollInterval1 * 1e3 < Millheater.API_TIMEOUT_MS + 1e3) {
-      this.log.error(`Fast polling interval must be at least ${Millheater.API_TIMEOUT_MS + 1} seconds.`);
+    if (!Number.isFinite(this.apiTimeout) || this.apiTimeout < 1) {
+      this.log.error(`HTTP interval must be at least 1 second.`);
+      this.terminate("HTTP interval must be at least 1 second.", utils.EXIT_CODES.INVALID_ADAPTER_CONFIG);
+      return;
+    }
+    if (!Number.isFinite(this.pollInterval1) || this.pollInterval1 < this.apiTimeout) {
+      this.log.error(`Fast polling interval must be at least ${this.apiTimeout + 1} seconds.`);
       this.terminate(
-        `Fast polling interval must be at least ${Millheater.API_TIMEOUT_MS + 1} seconds.`,
+        `Fast polling interval must be at least ${this.apiTimeout + 1} seconds.`,
         utils.EXIT_CODES.INVALID_ADAPTER_CONFIG
       );
       return;
     }
-    if (!Number.isFinite(this.pollInterval2) || this.pollInterval2 < this.pollInterval1 + Millheater.API_TIMEOUT_MS) {
-      this.log.error(
-        `Slow polling interval must be at least ${this.pollInterval1 + Millheater.API_TIMEOUT_MS} seconds.`
-      );
+    if (!Number.isFinite(this.pollInterval2) || this.pollInterval2 < this.pollInterval1 + this.apiTimeout) {
+      this.log.error(`Slow polling interval must be at least ${this.pollInterval1 + this.apiTimeout} seconds.`);
       this.terminate(
-        `Slow polling interval must be at least ${this.pollInterval1 + Millheater.API_TIMEOUT_MS} seconds.`,
+        `Slow polling interval must be at least ${this.pollInterval1 + this.apiTimeout} seconds.`,
         utils.EXIT_CODES.INVALID_ADAPTER_CONFIG
       );
       return;
     }
     this.log.info("Configuration loaded.");
     this.log.info(`IP address: ${this.ipAddress}`);
+    this.log.info(`HTTP timeout: ${this.apiTimeout}`);
     this.log.info(`Polling interval 1: ${this.pollInterval1} seconds`);
     this.log.info(`Polling interval 2: ${this.pollInterval2} seconds`);
     await this.createObjects();
@@ -180,7 +185,7 @@ class Millheater extends utils.Adapter {
         void this.setState("info.connection", false, true);
         resolve(void 0);
       });
-      request.setTimeout(Millheater.API_TIMEOUT_MS, () => {
+      request.setTimeout(this.apiTimeout * 1e3, () => {
         this.log.error(`Timeout calling ${path}.`);
         void this.setState("info.connection", false, true);
         request.destroy();
@@ -367,6 +372,10 @@ class Millheater extends utils.Adapter {
    * "Normal" is used for the temperature value in the selected operation mode "Control individually".
    *
    * @param value Target temperature.
+   * The temperature can be set even when the device is switched off.
+   * However, the configured temperature is only returned by the API
+   * via GET/control-status after the device has been switched on.
+   * Alternativ the temperature must be read by API via GET/set-temperature.
    */
   async setTemperature(value) {
     if (!Number.isFinite(value) || value < 5 || value > 35) {

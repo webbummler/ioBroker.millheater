@@ -6,8 +6,8 @@ import * as utils from "@iobroker/adapter-core";
 import * as http from "http";
 
 class Millheater extends utils.Adapter {
-	private static readonly API_TIMEOUT_MS = 5000;
 	private ipAddress = "";
+	private apiTimeout = 0;
 	private pollInterval1 = 0;
 	private pollInterval2 = 0;
 	private heaterName = "";
@@ -40,6 +40,7 @@ class Millheater extends utils.Adapter {
 		// Read and validate configuration once.
 		const ip = typeof this.config.ip === "string" ? this.config.ip.trim() : "";
 		this.ipAddress = ip;
+		this.apiTimeout = this.config.apiTimeout;
 		this.pollInterval1 = this.config.pollInterval1;
 		this.pollInterval2 = this.config.pollInterval2;
 
@@ -49,24 +50,25 @@ class Millheater extends utils.Adapter {
 			return;
 		}
 
-		if (!Number.isFinite(this.pollInterval1) || this.pollInterval1 * 1000 < Millheater.API_TIMEOUT_MS + 1000) {
-			this.log.error(`Fast polling interval must be at least ${Millheater.API_TIMEOUT_MS + 1} seconds.`);
+		if (!Number.isFinite(this.apiTimeout) || this.apiTimeout < 1) {
+			this.log.error(`HTTP interval must be at least 1 second.`);
+			this.terminate("HTTP interval must be at least 1 second.", utils.EXIT_CODES.INVALID_ADAPTER_CONFIG);
+			return;
+		}
+
+		if (!Number.isFinite(this.pollInterval1) || this.pollInterval1 < this.apiTimeout) {
+			this.log.error(`Fast polling interval must be at least ${this.apiTimeout + 1} seconds.`);
 			this.terminate(
-				`Fast polling interval must be at least ${Millheater.API_TIMEOUT_MS + 1} seconds.`,
+				`Fast polling interval must be at least ${this.apiTimeout + 1} seconds.`,
 				utils.EXIT_CODES.INVALID_ADAPTER_CONFIG,
 			);
 			return;
 		}
 
-		if (
-			!Number.isFinite(this.pollInterval2) ||
-			this.pollInterval2 < this.pollInterval1 + Millheater.API_TIMEOUT_MS
-		) {
-			this.log.error(
-				`Slow polling interval must be at least ${this.pollInterval1 + Millheater.API_TIMEOUT_MS} seconds.`,
-			);
+		if (!Number.isFinite(this.pollInterval2) || this.pollInterval2 < this.pollInterval1 + this.apiTimeout) {
+			this.log.error(`Slow polling interval must be at least ${this.pollInterval1 + this.apiTimeout} seconds.`);
 			this.terminate(
-				`Slow polling interval must be at least ${this.pollInterval1 + Millheater.API_TIMEOUT_MS} seconds.`,
+				`Slow polling interval must be at least ${this.pollInterval1 + this.apiTimeout} seconds.`,
 				utils.EXIT_CODES.INVALID_ADAPTER_CONFIG,
 			);
 			return;
@@ -74,6 +76,7 @@ class Millheater extends utils.Adapter {
 
 		this.log.info("Configuration loaded.");
 		this.log.info(`IP address: ${this.ipAddress}`);
+		this.log.info(`HTTP timeout: ${this.apiTimeout}`);
 		this.log.info(`Polling interval 1: ${this.pollInterval1} seconds`);
 		this.log.info(`Polling interval 2: ${this.pollInterval2} seconds`);
 
@@ -212,7 +215,7 @@ class Millheater extends utils.Adapter {
 				resolve(undefined);
 			});
 
-			request.setTimeout(Millheater.API_TIMEOUT_MS, () => {
+			request.setTimeout(this.apiTimeout * 1000, () => {
 				this.log.error(`Timeout calling ${path}.`);
 				void this.setState("info.connection", false, true);
 				request.destroy();

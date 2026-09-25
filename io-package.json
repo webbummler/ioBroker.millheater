@@ -1,8 +1,12 @@
 {
 	"common": {
 		"name": "millheater",
-		"version": "0.0.2",
+		"version": "0.0.3",
 		"news": {
+			"0.0.3": {
+				"en": "Add configurable API timeout and polling validation",
+				"de": "Konfigurierbaren API-Timeout und Abfrageintervall-Validierung hinzugefügt"
+			},
 			"0.0.2": {
 				"en": "Object structure improved, Improved adapter stability and validation",
 				"de": "Objektstruktur überarbeitet, Adapterstabilität und Validierung verbessert"
@@ -60,6 +64,7 @@
 	},
 	"native": {
 		"ip": "",
+		"apiTimeout": 5,
 		"pollInterval1": 30,
     	"pollInterval2": 86400
 	},

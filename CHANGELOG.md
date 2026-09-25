@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.0.3
+
+- Konfigurierbaren API-Timeout hinzugefügt
+- Validierung der schnellen und langsamen Abfrageintervalle anhand des konfigurierten API-Timeouts hinzugefügt
+
 ## 0.0.2
 
 - Objektstruktur überarbeitet
