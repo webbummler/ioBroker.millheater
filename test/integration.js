@@ -159,6 +159,7 @@ function isRequestBody(value) {
  * - body: object -> JSON response
  * - rawBody: string -> response body sent unchanged
  * - body undefined and no rawBody -> empty response
+ * - delayMs: number -> response is delayed by the given milliseconds
  *
  * @param {(request: {
  *     method: string,
@@ -168,7 +169,8 @@ function isRequestBody(value) {
  * }) => {
  *     statusCode?: number,
  *     body?: unknown,
- *     rawBody?: string
+ *     rawBody?: string,
+ *     delayMs?: number
  * }} handler HTTP response handler
  * @returns {{
  *     server: import("http").Server,
@@ -226,25 +228,37 @@ function createTrackedServer(handler) {
 
             const result = handler(record);
 
-            response.statusCode = result.statusCode ?? 200;
-            response.setHeader(
-                "Content-Type",
-                "application/json",
-            );
+            const sendResponse = () => {
+                if (response.destroyed) {
+                    return;
+                }
 
-            if (result.rawBody !== undefined) {
-                response.end(result.rawBody);
-                return;
-            }
+                response.statusCode = result.statusCode ?? 200;
+                response.setHeader(
+                    "Content-Type",
+                    "application/json",
+                );
 
-            if (result.body === undefined) {
-                response.end();
-                return;
-            }
+                if (result.rawBody !== undefined) {
+                    response.end(result.rawBody);
+                    return;
+                }
 
-            response.end(JSON.stringify(result.body));
-        });
+                if (result.body === undefined) {
+                    response.end();
+                    return;
+                }
+
+                response.end(JSON.stringify(result.body));
+        };
+
+        if (result.delayMs !== undefined) {
+            setTimeout(sendResponse, result.delayMs);
+        } else {
+            sendResponse();
+        }
     });
+});
 
     return {
         server,
@@ -347,11 +361,11 @@ async function configureHarness(
     port,
     apiTimeout = 5,
     pollInterval1 = 60,
-    pollInterval2 = 60,
+    pollInterval2 = 120,
 ) {
     await harness.changeAdapterConfig("millheater", {
         native: {
-            ipAddress: `127.0.0.1:${port}`,
+            ip: `127.0.0.1:${port}`,
             apiTimeout,
             pollInterval1,
             pollInterval2,
@@ -572,6 +586,9 @@ tests.integration(path.join(__dirname, ".."), {
                 let validCurrentPower = 750;
                 let mock;
 
+                const apiTimeout = 1;
+                const timeoutResponseDelay = 1500;
+
                 before(async function () {
                     this.timeout(10000);
 
@@ -622,7 +639,13 @@ tests.integration(path.join(__dirname, ".."), {
                                                     status: "error",
                                                 },
                                             };
-
+                                        case "timeout":
+                                            return {
+                                                delayMs: timeoutResponseDelay,
+                                                body: createControlStatusResponse({
+                                                    current_power: validCurrentPower,
+                                                }).body,
+                                            };
                                         case "valid":
                                         default:
                                             return createControlStatusResponse(
@@ -652,7 +675,8 @@ tests.integration(path.join(__dirname, ".."), {
                     await configureHarness(
                         harness,
                         port,
-                        1,
+                        apiTimeout,
+                        apiTimeout + 1,
                         60,
                     );
 
@@ -752,6 +776,7 @@ tests.integration(path.join(__dirname, ".."), {
                             assert.notStrictEqual(
                                 aliveState,
                                 null,
+                                "Alive state disappeared after API timeout",
                             );
 
                             assert.strictEqual(
@@ -784,6 +809,139 @@ tests.integration(path.join(__dirname, ".."), {
                             harness,
                             stateId,
                             state => state.val === 800,
+                        );
+                    },
+                );
+                it(
+                    "keeps the last valid state after an API timeout",
+                    async function () {
+                        this.timeout(15000);
+
+                        logTestStart(
+                            "keeps the last valid state after an API timeout",
+                        );
+
+                        const harness = getHarness();
+
+                        const stateId =
+                            "millheater.0.control-status.current_power";
+
+                        /*
+                        * First restore a known valid state.
+                        */
+                        validCurrentPower = 750;
+                        responseMode = "valid";
+
+                        const initialRequestCount = mock.requests.length;
+
+                        const initialRequestPromise =
+                            mock.waitForRequest(
+                                "GET",
+                                "/control-status",
+                                initialRequestCount,
+                            );
+
+                        await initialRequestPromise;
+
+                        await waitForState(
+                            harness,
+                            stateId,
+                            state =>
+                                state.val === 750 &&
+                                state.ack === true,
+                        );
+
+                        /*
+                        * Use a different value for the delayed response.
+                        * If the adapter processed the response after the timeout,
+                        * the state would incorrectly change to 900.
+                        */
+                        validCurrentPower = 900;
+                        responseMode = "timeout";
+
+                        const requestCount = mock.requests.length;
+
+                        const requestPromise =
+                            mock.waitForRequest(
+                                "GET",
+                                "/control-status",
+                                requestCount,
+                            );
+
+                        await requestPromise;
+
+                        /*
+                        * The adapter timeout is 1000 ms.
+                        * The mock response arrives after 1500 ms.
+                        *
+                        * Waiting 1700 ms ensures that the delayed response
+                        * would already have arrived if the adapter had not timed out.
+                        */
+                        await new Promise(resolve =>
+                            setTimeout(resolve, timeoutResponseDelay + 200),
+                        );
+
+                        const state =
+                            await harness.states.getStateAsync(stateId);
+
+                        assert.notStrictEqual(
+                            state,
+                            null,
+                            "State disappeared after API timeout",
+                        );
+                        assert.strictEqual(
+                            state.val,
+                            750,
+                            "State was changed after timeout",
+                        );
+
+                        assert.strictEqual(
+                            state.ack,
+                            true,
+                            "State was not acknowledged after timeout",
+                        );
+
+                        const aliveState =
+                            await harness.states.getStateAsync(
+                                "system.adapter.millheater.0.alive",
+                            );
+
+                        assert.notStrictEqual(
+                            aliveState,
+                            null,
+                            "Alive state disappeared after API timeout",
+                        );
+
+                        assert.strictEqual(
+                            aliveState.val,
+                            true,
+                            "Adapter did not survive timeout",
+                        );
+
+                        /*
+                        * Restore valid responses and verify that the adapter
+                        * continues processing API responses afterwards.
+                        */
+                        responseMode = "valid";
+                        validCurrentPower = 800;
+
+                        const nextRequestCount = mock.requests.length;
+
+                        const nextRequestPromise =
+                            mock.waitForRequest(
+                                "GET",
+                                "/control-status",
+                                nextRequestCount,
+                            );
+
+                        await nextRequestPromise;
+
+                        await waitForState(
+                            harness,
+                            stateId,
+                            state =>
+                                state.val === 800 &&
+                                state.ack === true,
                         );
                     },
                 );
@@ -852,8 +1010,8 @@ tests.integration(path.join(__dirname, ".."), {
                                     if (isRequestBody(request.body)) {
                                         const body = request.body;
 
-                                        if (typeof body.value === "string") {
-                                            deviceOperationMode = body.value;
+                                        if (typeof body.mode === "string") {
+                                            deviceOperationMode = body.mode;
                                         }
                                     }
                                     return {
