@@ -1737,5 +1737,530 @@ tests.integration(path.join(__dirname, ".."), {
                 );
             },
         );
+        /**
+         * Test 7:
+         * API request synchronization.
+         */
+        suite(
+            "07 - API request synchronization",
+            getHarness => {
+                let server;
+                let mock;
+                let responseMode = "valid";
+                let validCurrentPower = 750;
+                const pollDelay = 1500;
+
+                before(async function () {
+                    this.timeout(10000);
+
+                    logSuiteStart("07 - API request synchronization");
+
+                    const harness = getHarness();
+
+                    mock = createTrackedServer(
+                        request => {
+                            switch (request.path) {
+                                case "/status":
+                                    return createStatusResponse(
+                                        "generic",
+                                        "Generic Test Heater",
+                                    );
+
+                                case "/temperature-calibration-offset":
+                                    return createCalibrationResponse(2);
+
+                                case "/control-status":
+                                    if (responseMode === "slow") {
+                                        return {
+                                            delayMs: pollDelay,
+                                            body: createControlStatusResponse({
+                                                current_power:
+                                                    validCurrentPower,
+                                            }).body,
+                                        };
+                                    }
+
+                                    return createControlStatusResponse({
+                                        current_power:
+                                            validCurrentPower,
+                                    });
+
+                                case "/set-temperature":
+                                    return {
+                                        body: {
+                                            status: "ok",
+                                        },
+                                    };
+
+                                default:
+                                    return {
+                                        statusCode: 404,
+                                        body: {
+                                            status: "error",
+                                        },
+                                    };
+                            }
+                        },
+                    );
+
+                    server = mock.server;
+
+                    const port =
+                        await startTestServer(server);
+
+                    await configureHarness(
+                        harness,
+                        port,
+                        2,
+                        3,
+                        60,
+                    );
+
+                    await harness.startAdapterAndWait();
+
+                    await waitForStates(harness, {
+                        "millheater.0.control-status.current_power":
+                            750,
+                        "millheater.0.control-status.set_temperature":
+                            22,
+                    });
+                });
+
+                after(async () => {
+                    if (server) {
+                        await closeTestServer(server);
+                    }
+                });
+
+                it(
+                    "waits for a running poll before sending a write request",
+                    async function () {
+                        this.timeout(10000);
+
+                        logTestStart(
+                            "waits for a running poll before sending a write request",
+                        );
+
+                        const harness = getHarness();
+
+                        responseMode = "slow";
+
+                        const pollRequestCount =
+                            mock.requests.length;
+
+                        const pollRequestPromise =
+                            mock.waitForRequest(
+                                "GET",
+                                "/control-status",
+                                pollRequestCount,
+                            );
+
+                        await pollRequestPromise;
+
+                        const pollStartedAt = Date.now();
+
+                        const writeRequestPromise =
+                            mock.waitForRequest(
+                                "POST",
+                                "/set-temperature",
+                                mock.requests.length,
+                            );
+
+                        await harness.states.setStateAsync(
+                            "millheater.0.control-status.set_temperature",
+                            {
+                                val: 23,
+                                ack: false,
+                            },
+                        );
+
+                        /*
+                        * The poll is still running. The write request must
+                        * therefore not reach the Mill heater yet.
+                        */
+                        await new Promise(resolve =>
+                            setTimeout(resolve, 300),
+                        );
+
+                        assert.strictEqual(
+                            mock.countRequests(
+                                "POST",
+                                "/set-temperature",
+                            ),
+                            0,
+                            "Write request was sent while another API request was running",
+                        );
+
+                        responseMode = "valid";
+
+                        const writeRequest =
+                            await writeRequestPromise;
+
+                        assert.ok(
+                            mock.requests.indexOf(writeRequest) >= 0,
+                        );
+
+                        const writeDelay =
+                            Date.now() - pollStartedAt;
+
+                        assert.ok(
+                            writeDelay >= pollDelay - 300,
+                            `Write request started too early: ${writeDelay} ms`,
+                        );
+                    },
+                );
+            },
+        ),
+
+            suite(
+                "08 - API request priority",
+                getHarness => {
+                    let server;
+                    let mock;
+
+                    before(async function () {
+                        this.timeout(10000);
+
+                        logSuiteStart("08 - API request priority");
+
+                        const harness = getHarness();
+
+                        mock = createTrackedServer(
+                            request => {
+                                switch (request.path) {
+                                    case "/status":
+                                        return createStatusResponse(
+                                            "generic",
+                                            "Generic Test Heater",
+                                        );
+
+                                    case "/temperature-calibration-offset":
+                                        return createCalibrationResponse(2);
+
+                                    case "/control-status":
+                                        return createControlStatusResponse();
+
+                                    case "/set-temperature":
+                                        return {
+                                            delayMs: 7000,
+                                            body: {
+                                                status: "ok",
+                                            },
+                                        };
+
+                                    default:
+                                        return {
+                                            statusCode: 404,
+                                            body: {
+                                                status: "error",
+                                            },
+                                        };
+                                }
+                            },
+                        );
+
+                        server = mock.server;
+
+                        const port =
+                            await startTestServer(server);
+
+                        await configureHarness(
+                            harness,
+                            port,
+                            5,
+                            6,
+                            60,
+                        );
+
+                        await harness.startAdapterAndWait();
+
+                        await waitForStates(harness, {
+                            "millheater.0.control-status.set_temperature":
+                                22,
+                        });
+                    });
+
+                    after(async () => {
+                        if (server) {
+                            await closeTestServer(server);
+                        }
+                    });
+
+                    it(
+                        "skips polling while a write request is running",
+                        async function () {
+                            this.timeout(15000);
+
+                            logTestStart(
+                                "skips polling while a write request is running",
+                            );
+
+                            const harness = getHarness();
+
+                            /*
+                            * Wait for the initial Fast poll.
+                            * The next Fast poll is scheduled 6 seconds after startup.
+                            */
+                            const initialRequestCount =
+                                mock.requests.length;
+
+                            const initialPollPromise =
+                                mock.waitForRequest(
+                                    "GET",
+                                    "/control-status",
+                                    initialRequestCount,
+                                    8000,
+                                );
+
+                            await initialPollPromise;
+
+                            /*
+                            * Start the write 2 seconds after the initial poll.
+                            * The next Fast poll will therefore occur about 4 seconds
+                            * after the write has started.
+                            */
+                            await new Promise(resolve =>
+                                setTimeout(resolve, 2000),
+                            );
+
+                            const controlStatusCount =
+                                mock.countRequests(
+                                    "GET",
+                                    "/control-status",
+                                );
+
+                            const writeRequestPromise =
+                                mock.waitForRequest(
+                                    "POST",
+                                    "/set-temperature",
+                                    mock.requests.length,
+                                );
+
+                            await harness.states.setStateAsync(
+                                "millheater.0.control-status.set_temperature",
+                                {
+                                    val: 23,
+                                    ack: false,
+                                },
+                            );
+
+                            await writeRequestPromise;
+
+                            /*
+                            * The write is still running.
+                            * The next Fast poll should occur after about 4 seconds,
+                            * but must be skipped because the API mutex is occupied.
+                            */
+                            await new Promise(resolve =>
+                                setTimeout(resolve, 4500),
+                            );
+
+                            assert.strictEqual(
+                                mock.countRequests(
+                                    "GET",
+                                    "/control-status",
+                                ),
+                                controlStatusCount,
+                                "Fast poll was sent while a write request was running",
+                            );
+
+                            /*
+                            * The write request has a 7-second response delay,
+                            * so the adapter timeout occurs after 5 seconds.
+                            */
+                            await new Promise(resolve =>
+                                setTimeout(resolve, 1000),
+                            );
+
+                            assert.strictEqual(
+                                mock.countRequests(
+                                    "POST",
+                                    "/set-temperature",
+                                ),
+                                1,
+                                "Expected exactly one write request",
+                            );
+                        },
+                    );
+                },
+            );
+
+            suite(
+            "09 - API shutdown",
+            getHarness => {
+                let server;
+                let mock;
+
+                before(async function () {
+                    this.timeout(10000);
+
+                    logSuiteStart("09 - API shutdown");
+
+                    const harness = getHarness();
+
+                    mock = createTrackedServer(
+                        request => {
+                            switch (request.path) {
+                                case "/status":
+                                    return createStatusResponse(
+                                        "generic",
+                                        "Generic Test Heater",
+                                    );
+
+                                case "/temperature-calibration-offset":
+                                    return createCalibrationResponse(2);
+
+                                case "/control-status":
+                                    return {
+                                        delayMs: 1500,
+                                        body:
+                                            createControlStatusResponse({
+                                                current_power: 750,
+                                            }).body,
+                                    };
+
+                                case "/set-temperature":
+                                    return {
+                                        body: {
+                                            status: "ok",
+                                        },
+                                    };
+
+                                default:
+                                    return {
+                                        statusCode: 404,
+                                        body: {
+                                            status: "error",
+                                        },
+                                    };
+                            }
+                        },
+                    );
+
+                    server = mock.server;
+
+                    const port =
+                        await startTestServer(server);
+
+                    await configureHarness(
+                        harness,
+                        port,
+                        2,
+                        3,
+                        60,
+                    );
+
+                    await harness.startAdapterAndWait();
+
+                    await waitForState(
+                        harness,
+                        "millheater.0.control-status.current_power",
+                        state => state.val === 750,
+                    );
+                });
+
+                after(async () => {
+                    if (server) {
+                        await closeTestServer(server);
+                    }
+                });
+
+                it(
+                    "cancels waiting API requests during shutdown",
+                    async function () {
+                        this.timeout(10000);
+
+                        logTestStart(
+                            "cancels waiting API requests during shutdown",
+                        );
+
+                        const harness = getHarness();
+
+                        const controlStatusCount =
+                            mock.countRequests(
+                                "GET",
+                                "/control-status",
+                            );
+
+                        const controlStatusRequestPromise =
+                            mock.waitForRequest(
+                                "GET",
+                                "/control-status",
+                                mock.requests.length,
+                            );
+
+                        await controlStatusRequestPromise;
+
+                        const postRequestCount =
+                            mock.countRequests(
+                                "POST",
+                                "/set-temperature",
+                            );
+
+                        await harness.states.setStateAsync(
+                            "millheater.0.control-status.set_temperature",
+                            {
+                                val: 23,
+                                ack: false,
+                            },
+                        );
+
+                        /*
+                        * The POST must be waiting behind the running GET.
+                        */
+                        await new Promise(resolve =>
+                            setTimeout(resolve, 100),
+                        );
+
+                        assert.strictEqual(
+                            mock.countRequests(
+                                "POST",
+                                "/set-temperature",
+                            ),
+                            postRequestCount,
+                            "Write request was sent before the running API request finished",
+                        );
+
+                        const stopStartedAt = Date.now();
+
+                        await harness.stopAdapter();
+
+                        const stopDuration =
+                            Date.now() - stopStartedAt;
+
+                        /*
+                        * The running request takes 1500 ms and must be
+                        * allowed to finish before the adapter shuts down.
+                        */
+                        assert.ok(
+                            stopDuration >= 1000,
+                            `Adapter stopped too early: ${stopDuration} ms`,
+                        );
+
+                        /*
+                        * The waiting write must have been cancelled and
+                        * must therefore never reach the API.
+                        */
+                        assert.strictEqual(
+                            mock.countRequests(
+                                "POST",
+                                "/set-temperature",
+                            ),
+                            postRequestCount,
+                            "Waiting write request was executed during shutdown",
+                        );
+
+                        assert.ok(
+                            controlStatusCount <
+                                mock.countRequests(
+                                    "GET",
+                                    "/control-status",
+                                ),
+                            "Expected the running control-status request",
+                        );
+                    },
+                );
+            },
+        );
     },
 });

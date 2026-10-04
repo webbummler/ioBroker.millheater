@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.0.4
+
+- API-Zugriffe gegen parallele Anfragen abgesichert
+- Beim Beenden des Adapters werden wartende und laufende API-Anfragen berücksichtigt
+- info.connection ergänzt
+- Unterstützung für Node.js 22 aktualisiert
+- Abhängigkeiten und TypeScript-Konfiguration auf Node.js 22 aktualisiert
+
 ## 0.0.3
 
 - Konfigurierbaren API-Timeout hinzugefügt

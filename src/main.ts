@@ -4,6 +4,7 @@
 
 import * as utils from "@iobroker/adapter-core";
 import * as http from "http";
+import { E_ALREADY_LOCKED, E_CANCELED, Mutex, tryAcquire } from "async-mutex";
 
 class Millheater extends utils.Adapter {
 	private ipAddress = "";
@@ -11,9 +12,12 @@ class Millheater extends utils.Adapter {
 	private pollInterval1 = 0;
 	private pollInterval2 = 0;
 	private heaterName = "";
+	private isUnloading = false;
 
 	private pollTimer1: ioBroker.Interval | undefined;
 	private pollTimer2: ioBroker.Interval | undefined;
+
+	private readonly apiMutex = new Mutex();
 
 	public constructor(options: Partial<utils.AdapterOptions> = {}) {
 		super({
@@ -91,14 +95,63 @@ class Millheater extends utils.Adapter {
 
 		// Use the ioBroker adapter timer functions.
 		this.pollTimer1 = this.setInterval(() => {
-			void this.updateFastData();
+			void this.updateFastData(true);
 		}, this.pollInterval1 * 1000);
 
 		this.pollTimer2 = this.setInterval(() => {
-			void this.updateSlowData();
+			void this.updateSlowData(true);
 		}, this.pollInterval2 * 1000);
 
 		this.log.info("Polling timers started.");
+	}
+
+	/**
+	 * normal api request
+	 * uses a Mutex
+	 *
+	 * @param path API endpoint.
+	 * @param skipIfBusy GET request is skippable.
+	 * @param method HTTP method.
+	 * @param body JSON request body.
+	 */
+	private async callApi(
+		path: string,
+		skipIfBusy = false,
+		method: "GET" | "POST" = "GET",
+		body?: unknown,
+	): Promise<Record<string, unknown> | undefined> {
+		if (this.isUnloading) {
+			return undefined;
+		}
+
+		if (skipIfBusy && method !== "GET") {
+			throw new Error("The skip option is only supported for GET requests.");
+		}
+		try {
+			if (skipIfBusy) {
+				return await tryAcquire(this.apiMutex).runExclusive(() => this.performApiRequest(path, method, body));
+			}
+
+			return await this.apiMutex.runExclusive(() => this.performApiRequest(path, method, body));
+		} catch (error) {
+			if (error === E_ALREADY_LOCKED) {
+				this.log.debug(`Skipping API request ${method} ${path} because another request is already running.`);
+				return undefined;
+			}
+
+			if (error === E_CANCELED && this.isUnloading) {
+				this.log.debug(`Canceled API request ${method} ${path} because of shutdown.`);
+				return undefined;
+			}
+
+			this.log.error(
+				`Error executing API request ${method} ${path}: ${
+					error instanceof Error ? error.message : String(error)
+				}`,
+			);
+
+			return undefined;
+		}
 	}
 
 	/**
@@ -118,7 +171,7 @@ class Millheater extends utils.Adapter {
 	 * @param method HTTP method.
 	 * @param body JSON request body.
 	 */
-	private async callApi(
+	private async performApiRequest(
 		path: string,
 		method: "GET" | "POST" = "GET",
 		body?: unknown,
@@ -235,19 +288,21 @@ class Millheater extends utils.Adapter {
 	 *
 	 * Valid API values are written to the corresponding states.
 	 * Invalid, missing or unavailable API values leave the existing state unchanged.
+	 *
+	 * @param skipIfBusy If API is busy, skip this request.
 	 */
-	private async updateFastData(): Promise<void> {
-		await this.getControlStatus();
+	private async updateFastData(skipIfBusy = false): Promise<void> {
+		await this.getControlStatus(skipIfBusy);
 
 		const heaterName = this.heaterName.toLowerCase();
 
 		// The heater type is determined from the name received from /status.
 		if (heaterName.includes("oil")) {
 			// Only available for oil heaters.
-			await this.getHeatingLevelPercentage();
+			await this.getHeatingLevelPercentage(skipIfBusy);
 		} else if (heaterName.includes("panel")) {
 			// Only available for panel and storage heater, only panel heaters are handled here.
-			await this.getLimitedHeatingPower();
+			await this.getLimitedHeatingPower(skipIfBusy);
 		}
 	}
 
@@ -256,22 +311,26 @@ class Millheater extends utils.Adapter {
 	 *
 	 * Valid API values are written to the corresponding states.
 	 * Invalid, missing or unavailable API values leave the existing state unchanged.  
+	 *
+	 * @param skipIfBusy If API is busy, skip this request.
 	 */
-	private async updateSlowData(): Promise<void> {
-		await this.getStatus();
-		await this.getTemperatureCalibrationOffset();
+	private async updateSlowData(skipIfBusy = false): Promise<void> {
+		await this.getStatus(skipIfBusy);
+		await this.getTemperatureCalibrationOffset(skipIfBusy);
 	}
 
 	/**
 	 * Read current control status.
+	 *
+	 * @param skipIfBusy If API is busy, skip this request.
 	 */
-	private async getControlStatus(): Promise<void> {
+	private async getControlStatus(skipIfBusy = false): Promise<boolean> {
 		this.log.debug("getControlStatus started.");
 
-		const data = await this.callApi("/control-status");
+		const data = await this.callApi("/control-status", skipIfBusy);
 
 		if (!data) {
-			return;
+			return false;
 		}
 
 		// Read API values and verify their expected data types.
@@ -333,15 +392,18 @@ class Millheater extends utils.Adapter {
 		}
 
 		this.log.debug("Control status updated.");
+		return true;
 	}
 
 	/**
 	 * Read basic heater status.
+	 *
+	 * @param skipIfBusy If API is busy, skip this request.
 	 */
-	private async getStatus(): Promise<void> {
+	private async getStatus(skipIfBusy = false): Promise<void> {
 		this.log.debug("getStatus started.");
 
-		const data = await this.callApi("/status");
+		const data = await this.callApi("/status", skipIfBusy);
 
 		if (!data) {
 			return;
@@ -382,11 +444,13 @@ class Millheater extends utils.Adapter {
 
 	/**
 	 * Read temperature calibration offset.
+	 *
+	 * @param skipIfBusy If API is busy, skip this request.
 	 */
-	private async getTemperatureCalibrationOffset(): Promise<void> {
+	private async getTemperatureCalibrationOffset(skipIfBusy = false): Promise<void> {
 		this.log.debug("getTemperatureCalibrationOffset started.");
 
-		const data = await this.callApi("/temperature-calibration-offset");
+		const data = await this.callApi("/temperature-calibration-offset", skipIfBusy);
 
 		if (!data) {
 			return;
@@ -404,11 +468,13 @@ class Millheater extends utils.Adapter {
 
 	/**
 	 * Read oil heater power.
+	 *
+	 * @param skipIfBusy If API is busy, skip this request.
 	 */
-	private async getHeatingLevelPercentage(): Promise<void> {
+	private async getHeatingLevelPercentage(skipIfBusy = false): Promise<void> {
 		this.log.debug("getHeatingLevelPercentage started.");
 
-		const data = await this.callApi("/oil-heater-power");
+		const data = await this.callApi("/oil-heater-power", skipIfBusy);
 
 		if (!data) {
 			return;
@@ -427,11 +493,13 @@ class Millheater extends utils.Adapter {
 
 	/**
 	 * Read panel heater power limitation.
+	 *
+	 * @param skipIfBusy If API is busy, skip this request.
 	 */
-	private async getLimitedHeatingPower(): Promise<void> {
+	private async getLimitedHeatingPower(skipIfBusy = false): Promise<void> {
 		this.log.debug("getLimitedHeatingPower started.");
 
-		const data = await this.callApi("/limited-heating-power");
+		const data = await this.callApi("/limited-heating-power", skipIfBusy);
 
 		if (!data) {
 			return;
@@ -460,7 +528,7 @@ class Millheater extends utils.Adapter {
 			return;
 		}
 
-		const data = await this.callApi("/operation-mode", "POST", { mode: value });
+		const data = await this.callApi("/operation-mode", false, "POST", { mode: value });
 
 		if (!data) {
 			this.log.error(`Failed to set operation mode to "${value}".`);
@@ -490,7 +558,7 @@ class Millheater extends utils.Adapter {
 			return;
 		}
 
-		const data = await this.callApi("/set-temperature", "POST", { type: "Normal", value });
+		const data = await this.callApi("/set-temperature", false, "POST", { type: "Normal", value });
 
 		if (!data) {
 			this.log.error(`Failed to set temperature to ${value} °C.`);
@@ -523,7 +591,7 @@ class Millheater extends utils.Adapter {
 			return;
 		}
 
-		const data = await this.callApi("/oil-heater-power", "POST", { heating_level_percentage: value });
+		const data = await this.callApi("/oil-heater-power", false, "POST", { heating_level_percentage: value });
 
 		if (!data) {
 			this.log.error(`Failed to set heating level percentage to ${value}%.`);
@@ -556,7 +624,7 @@ class Millheater extends utils.Adapter {
 			return;
 		}
 
-		const data = await this.callApi("/limited-heating-power", "POST", { limited_heating_power: value });
+		const data = await this.callApi("/limited-heating-power", false, "POST", { limited_heating_power: value });
 
 		if (!data) {
 			this.log.error(`Failed to set limited heating power to ${value}%.`);
@@ -580,7 +648,7 @@ class Millheater extends utils.Adapter {
 			return;
 		}
 
-		const data = await this.callApi("/temperature-calibration-offset", "POST", { value });
+		const data = await this.callApi("/temperature-calibration-offset", false, "POST", { value });
 
 		if (!data) {
 			this.log.error(`Failed to set temperature calibration offset to ${value} °C.`);
@@ -991,6 +1059,7 @@ class Millheater extends utils.Adapter {
 	 * @param callback Callback used to complete adapter shutdown.
 	 */
 	private onUnload(callback: () => void): void {
+		this.isUnloading = true;
 		try {
 			this.log.info("Mill Heater Adapter is shutting down.");
 
@@ -1004,7 +1073,11 @@ class Millheater extends utils.Adapter {
 				this.pollTimer2 = undefined;
 			}
 
-			callback();
+			this.apiMutex.cancel();
+
+			void this.apiMutex.waitForUnlock().then(() => {
+				callback();
+			});
 		} catch (error) {
 			this.log.error(`Error during shutdown: ${error instanceof Error ? error.message : String(error)}`);
 

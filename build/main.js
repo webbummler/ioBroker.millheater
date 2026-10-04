@@ -23,14 +23,17 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 ));
 var utils = __toESM(require("@iobroker/adapter-core"));
 var http = __toESM(require("http"));
+var import_async_mutex = require("async-mutex");
 class Millheater extends utils.Adapter {
   ipAddress = "";
   apiTimeout = 0;
   pollInterval1 = 0;
   pollInterval2 = 0;
   heaterName = "";
+  isUnloading = false;
   pollTimer1;
   pollTimer2;
+  apiMutex = new import_async_mutex.Mutex();
   constructor(options = {}) {
     super({
       ...options,
@@ -92,12 +95,48 @@ class Millheater extends utils.Adapter {
     await this.updateSlowData();
     await this.updateFastData();
     this.pollTimer1 = this.setInterval(() => {
-      void this.updateFastData();
+      void this.updateFastData(true);
     }, this.pollInterval1 * 1e3);
     this.pollTimer2 = this.setInterval(() => {
-      void this.updateSlowData();
+      void this.updateSlowData(true);
     }, this.pollInterval2 * 1e3);
     this.log.info("Polling timers started.");
+  }
+  /**
+   * normal api request
+   * uses a Mutex
+   *
+   * @param path API endpoint.
+   * @param skipIfBusy GET request is skippable.
+   * @param method HTTP method.
+   * @param body JSON request body.
+   */
+  async callApi(path, skipIfBusy = false, method = "GET", body) {
+    if (this.isUnloading) {
+      return void 0;
+    }
+    if (skipIfBusy && method !== "GET") {
+      throw new Error("The skip option is only supported for GET requests.");
+    }
+    try {
+      if (skipIfBusy) {
+        return await (0, import_async_mutex.tryAcquire)(this.apiMutex).runExclusive(() => this.performApiRequest(path, method, body));
+      }
+      return await this.apiMutex.runExclusive(() => this.performApiRequest(path, method, body));
+    } catch (error) {
+      if (error === import_async_mutex.E_ALREADY_LOCKED) {
+        this.log.debug(`Skipping API request ${method} ${path} because another request is already running.`);
+        return void 0;
+      }
+      if (error === import_async_mutex.E_CANCELED && this.isUnloading) {
+        this.log.debug(`Canceled API request ${method} ${path} because of shutdown.`);
+        return void 0;
+      }
+      this.log.error(
+        `Error executing API request ${method} ${path}: ${error instanceof Error ? error.message : String(error)}`
+      );
+      return void 0;
+    }
   }
   /**
    * Central Mill API request function.
@@ -116,7 +155,7 @@ class Millheater extends utils.Adapter {
    * @param method HTTP method.
    * @param body JSON request body.
    */
-  async callApi(path, method = "GET", body) {
+  async performApiRequest(path, method = "GET", body) {
     const url = `http://${this.ipAddress}${path}`;
     const headers = {};
     const jsonBody = body !== void 0 ? JSON.stringify(body) : void 0;
@@ -202,14 +241,16 @@ class Millheater extends utils.Adapter {
    *
    * Valid API values are written to the corresponding states.
    * Invalid, missing or unavailable API values leave the existing state unchanged.
+   *
+   * @param skipIfBusy If API is busy, skip this request.
    */
-  async updateFastData() {
-    await this.getControlStatus();
+  async updateFastData(skipIfBusy = false) {
+    await this.getControlStatus(skipIfBusy);
     const heaterName = this.heaterName.toLowerCase();
     if (heaterName.includes("oil")) {
-      await this.getHeatingLevelPercentage();
+      await this.getHeatingLevelPercentage(skipIfBusy);
     } else if (heaterName.includes("panel")) {
-      await this.getLimitedHeatingPower();
+      await this.getLimitedHeatingPower(skipIfBusy);
     }
   }
   /**
@@ -217,19 +258,23 @@ class Millheater extends utils.Adapter {
    *
    * Valid API values are written to the corresponding states.
    * Invalid, missing or unavailable API values leave the existing state unchanged.  
+   *
+   * @param skipIfBusy If API is busy, skip this request.
    */
-  async updateSlowData() {
-    await this.getStatus();
-    await this.getTemperatureCalibrationOffset();
+  async updateSlowData(skipIfBusy = false) {
+    await this.getStatus(skipIfBusy);
+    await this.getTemperatureCalibrationOffset(skipIfBusy);
   }
   /**
    * Read current control status.
+   *
+   * @param skipIfBusy If API is busy, skip this request.
    */
-  async getControlStatus() {
+  async getControlStatus(skipIfBusy = false) {
     this.log.debug("getControlStatus started.");
-    const data = await this.callApi("/control-status");
+    const data = await this.callApi("/control-status", skipIfBusy);
     if (!data) {
-      return;
+      return false;
     }
     const ambientTemperature = typeof data.ambient_temperature === "number" ? Math.round(data.ambient_temperature * 10) / 10 : void 0;
     const connectedToCloud = typeof data.connected_to_cloud === "boolean" ? data.connected_to_cloud : void 0;
@@ -272,13 +317,16 @@ class Millheater extends utils.Adapter {
       void this.setState("control-status.switched_on", switchedOn, true);
     }
     this.log.debug("Control status updated.");
+    return true;
   }
   /**
    * Read basic heater status.
+   *
+   * @param skipIfBusy If API is busy, skip this request.
    */
-  async getStatus() {
+  async getStatus(skipIfBusy = false) {
     this.log.debug("getStatus started.");
-    const data = await this.callApi("/status");
+    const data = await this.callApi("/status", skipIfBusy);
     if (!data) {
       return;
     }
@@ -307,10 +355,12 @@ class Millheater extends utils.Adapter {
   }
   /**
    * Read temperature calibration offset.
+   *
+   * @param skipIfBusy If API is busy, skip this request.
    */
-  async getTemperatureCalibrationOffset() {
+  async getTemperatureCalibrationOffset(skipIfBusy = false) {
     this.log.debug("getTemperatureCalibrationOffset started.");
-    const data = await this.callApi("/temperature-calibration-offset");
+    const data = await this.callApi("/temperature-calibration-offset", skipIfBusy);
     if (!data) {
       return;
     }
@@ -322,10 +372,12 @@ class Millheater extends utils.Adapter {
   }
   /**
    * Read oil heater power.
+   *
+   * @param skipIfBusy If API is busy, skip this request.
    */
-  async getHeatingLevelPercentage() {
+  async getHeatingLevelPercentage(skipIfBusy = false) {
     this.log.debug("getHeatingLevelPercentage started.");
-    const data = await this.callApi("/oil-heater-power");
+    const data = await this.callApi("/oil-heater-power", skipIfBusy);
     if (!data) {
       return;
     }
@@ -337,10 +389,12 @@ class Millheater extends utils.Adapter {
   }
   /**
    * Read panel heater power limitation.
+   *
+   * @param skipIfBusy If API is busy, skip this request.
    */
-  async getLimitedHeatingPower() {
+  async getLimitedHeatingPower(skipIfBusy = false) {
     this.log.debug("getLimitedHeatingPower started.");
-    const data = await this.callApi("/limited-heating-power");
+    const data = await this.callApi("/limited-heating-power", skipIfBusy);
     if (!data) {
       return;
     }
@@ -359,7 +413,7 @@ class Millheater extends utils.Adapter {
       this.log.warn(`Invalid operation mode: "${value}".`);
       return;
     }
-    const data = await this.callApi("/operation-mode", "POST", { mode: value });
+    const data = await this.callApi("/operation-mode", false, "POST", { mode: value });
     if (!data) {
       this.log.error(`Failed to set operation mode to "${value}".`);
       return;
@@ -382,7 +436,7 @@ class Millheater extends utils.Adapter {
       this.log.warn(`Invalid temperature: ${value} \xB0C (allowed: 5-35 \xB0C)`);
       return;
     }
-    const data = await this.callApi("/set-temperature", "POST", { type: "Normal", value });
+    const data = await this.callApi("/set-temperature", false, "POST", { type: "Normal", value });
     if (!data) {
       this.log.error(`Failed to set temperature to ${value} \xB0C.`);
       return;
@@ -405,7 +459,7 @@ class Millheater extends utils.Adapter {
       this.log.warn(`Invalid heating level percentage: ${value}. Allowed values are 40, 60 or 100.`);
       return;
     }
-    const data = await this.callApi("/oil-heater-power", "POST", { heating_level_percentage: value });
+    const data = await this.callApi("/oil-heater-power", false, "POST", { heating_level_percentage: value });
     if (!data) {
       this.log.error(`Failed to set heating level percentage to ${value}%.`);
       return;
@@ -428,7 +482,7 @@ class Millheater extends utils.Adapter {
       this.log.warn(`Invalid limited heating power: ${value}. Allowed values are 10 to 100.`);
       return;
     }
-    const data = await this.callApi("/limited-heating-power", "POST", { limited_heating_power: value });
+    const data = await this.callApi("/limited-heating-power", false, "POST", { limited_heating_power: value });
     if (!data) {
       this.log.error(`Failed to set limited heating power to ${value}%.`);
       return;
@@ -445,7 +499,7 @@ class Millheater extends utils.Adapter {
       this.log.warn(`Invalid temperature calibration offset: ${value} \xB0C (allowed: -30 - +30 \xB0C)`);
       return;
     }
-    const data = await this.callApi("/temperature-calibration-offset", "POST", { value });
+    const data = await this.callApi("/temperature-calibration-offset", false, "POST", { value });
     if (!data) {
       this.log.error(`Failed to set temperature calibration offset to ${value} \xB0C.`);
       return;
@@ -795,6 +849,7 @@ class Millheater extends utils.Adapter {
    * @param callback Callback used to complete adapter shutdown.
    */
   onUnload(callback) {
+    this.isUnloading = true;
     try {
       this.log.info("Mill Heater Adapter is shutting down.");
       if (this.pollTimer1 !== void 0) {
@@ -805,7 +860,10 @@ class Millheater extends utils.Adapter {
         this.clearInterval(this.pollTimer2);
         this.pollTimer2 = void 0;
       }
-      callback();
+      this.apiMutex.cancel();
+      void this.apiMutex.waitForUnlock().then(() => {
+        callback();
+      });
     } catch (error) {
       this.log.error(`Error during shutdown: ${error instanceof Error ? error.message : String(error)}`);
       callback();
