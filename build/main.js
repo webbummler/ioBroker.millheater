@@ -68,7 +68,7 @@ class Millheater extends utils.Adapter {
       this.terminate("HTTP interval must be at least 1 second.", utils.EXIT_CODES.INVALID_ADAPTER_CONFIG);
       return;
     }
-    if (!Number.isFinite(this.pollInterval1) || this.pollInterval1 < this.apiTimeout) {
+    if (!Number.isFinite(this.pollInterval1) || this.pollInterval1 < this.apiTimeout + 1) {
       this.log.error(`Fast polling interval must be at least ${this.apiTimeout + 1} seconds.`);
       this.terminate(
         `Fast polling interval must be at least ${this.apiTimeout + 1} seconds.`,
@@ -245,6 +245,9 @@ class Millheater extends utils.Adapter {
    * @param skipIfBusy If API is busy, skip this request.
    */
   async updateFastData(skipIfBusy = false) {
+    if (!this.heaterName) {
+      await this.getStatus(skipIfBusy);
+    }
     await this.getControlStatus(skipIfBusy);
     const heaterName = this.heaterName.toLowerCase();
     if (heaterName.includes("oil")) {
@@ -274,7 +277,7 @@ class Millheater extends utils.Adapter {
     this.log.debug("getControlStatus started.");
     const data = await this.callApi("/control-status", skipIfBusy);
     if (!data) {
-      return false;
+      return;
     }
     const ambientTemperature = typeof data.ambient_temperature === "number" ? Math.round(data.ambient_temperature * 10) / 10 : void 0;
     const connectedToCloud = typeof data.connected_to_cloud === "boolean" ? data.connected_to_cloud : void 0;
@@ -317,7 +320,6 @@ class Millheater extends utils.Adapter {
       void this.setState("control-status.switched_on", switchedOn, true);
     }
     this.log.debug("Control status updated.");
-    return true;
   }
   /**
    * Read basic heater status.
@@ -696,8 +698,7 @@ class Millheater extends utils.Adapter {
           Off: "Off",
           "Weekly program": "Weekly program",
           "Independent device": "Independent device",
-          "Control individually": "Control individually",
-          Invalid: "Invalid"
+          "Control individually": "Control individually"
         }
       },
       native: {}

@@ -435,6 +435,10 @@ For state objects, the adapter uses the official ioBroker state roles.
 
 ## Changelog
 
+### 0.0.5
+
+* Verbesserte Startlogik, wenn die erste Statusabfrage fehl schlägt
+
 ### 0.0.4
 
 * API-Zugriffe gegen parallele Anfragen abgesichert

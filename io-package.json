@@ -1,8 +1,12 @@
 {
 	"common": {
 		"name": "millheater",
-		"version": "0.0.4",
+		"version": "0.0.5",
 		"news": {
+			"0.0.5": {
+				"en": "Improved startup recovery and API handling.",
+				"de": "Verbesserte Logik beim Start und API-Verarbeitung."
+			},
 			"0.0.4": {
 				"en": "Improved API call handling and update checks, Node.js 22",
 				"de": "API-Zugriffe optimiert, auf Node.js 22 umgestellt"

@@ -60,7 +60,7 @@ class Millheater extends utils.Adapter {
 			return;
 		}
 
-		if (!Number.isFinite(this.pollInterval1) || this.pollInterval1 < this.apiTimeout) {
+		if (!Number.isFinite(this.pollInterval1) || this.pollInterval1 < this.apiTimeout + 1) {
 			this.log.error(`Fast polling interval must be at least ${this.apiTimeout + 1} seconds.`);
 			this.terminate(
 				`Fast polling interval must be at least ${this.apiTimeout + 1} seconds.`,
@@ -292,6 +292,11 @@ class Millheater extends utils.Adapter {
 	 * @param skipIfBusy If API is busy, skip this request.
 	 */
 	private async updateFastData(skipIfBusy = false): Promise<void> {
+		// Retry reading the heater status until the heater type is known.
+		// This is important when /status was unavailable during adapter startup.
+		if (!this.heaterName) {
+			await this.getStatus(skipIfBusy);
+		}
 		await this.getControlStatus(skipIfBusy);
 
 		const heaterName = this.heaterName.toLowerCase();
@@ -324,13 +329,13 @@ class Millheater extends utils.Adapter {
 	 *
 	 * @param skipIfBusy If API is busy, skip this request.
 	 */
-	private async getControlStatus(skipIfBusy = false): Promise<boolean> {
+	private async getControlStatus(skipIfBusy = false): Promise<void> {
 		this.log.debug("getControlStatus started.");
 
 		const data = await this.callApi("/control-status", skipIfBusy);
 
 		if (!data) {
-			return false;
+			return;
 		}
 
 		// Read API values and verify their expected data types.
@@ -392,7 +397,6 @@ class Millheater extends utils.Adapter {
 		}
 
 		this.log.debug("Control status updated.");
-		return true;
 	}
 
 	/**
@@ -885,7 +889,6 @@ class Millheater extends utils.Adapter {
 					"Weekly program": "Weekly program",
 					"Independent device": "Independent device",
 					"Control individually": "Control individually",
-					Invalid: "Invalid",
 				},
 			},
 			native: {},
