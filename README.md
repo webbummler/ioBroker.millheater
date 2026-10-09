@@ -2,14 +2,10 @@
 
 # ioBroker.millheater
 
-[![NPM version](https://img.shields.io/npm/v/iobroker.millheater.svg)](https://www.npmjs.com/package/iobroker.millheater)
-
-[![Downloads](https://img.shields.io/npm/dm/iobroker.millheater.svg)](https://www.npmjs.com/package/iobroker.millheater)
-
 ![Number of Installations](https://iobroker.live/badges/millheater-installed.svg)
-
 ![Current version in stable repository](https://iobroker.live/badges/millheater-stable.svg)
-
+[![NPM version](https://img.shields.io/npm/v/iobroker.millheater.svg)](https://www.npmjs.com/package/iobroker.millheater)
+[![Downloads](https://img.shields.io/npm/dm/iobroker.millheater.svg)](https://www.npmjs.com/package/iobroker.millheater)
 [![Test and Release](https://github.com/webbummler/ioBroker.millheater/actions/workflows/test-and-release.yml/badge.svg)](https://github.com/webbummler/ioBroker.millheater/actions/workflows/test-and-release.yml)
 
 ## About
