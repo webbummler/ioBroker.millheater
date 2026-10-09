@@ -150,7 +150,7 @@
 		"ip": "",
 		"apiTimeout": 5,
 		"pollInterval1": 30,
-    	"pollInterval2": 86400
+		"pollInterval2": 86400
 	},
 	"objects": [],
 	"instanceObjects": [
@@ -166,20 +166,20 @@
 			"native": {}
 		},
 		{
-		"_id": "info.connection",
-		"type": "state",
-		"common": {
-			"name": {
-				"en": "Connection",
-				"de": "Verbindung"
+			"_id": "info.connection",
+			"type": "state",
+			"common": {
+				"name": {
+					"en": "Connection",
+					"de": "Verbindung"
+				},
+				"type": "boolean",
+				"role": "indicator.connected",
+				"read": true,
+				"write": false,
+				"def": false
 			},
-			"type": "boolean",
-			"role": "indicator.connected",
-			"read": true,
-			"write": false,
-			"def": false
-		},
-		"native": {}
+			"native": {}
 		}
 	]
 }
