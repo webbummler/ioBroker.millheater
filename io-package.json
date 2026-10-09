@@ -80,32 +80,6 @@
 				"pl": "Dodano konfigurowalny limit czasu API i walidację interwałów odpytywania.",
 				"uk": "Додано налаштування тайм-ауту API та перевірку інтервалів опитування.",
 				"zh-cn": "新增可配置的 API 超时时间和轮询间隔验证。"
-			},
-			"0.0.2": {
-				"en": "Object structure improved, Improved adapter stability and validation",
-				"de": "Objektstruktur überarbeitet, Adapterstabilität und Validierung verbessert",
-				"ru": "Переработана структура объектов, повышены стабильность адаптера и качество проверки данных.",
-				"pt": "Estrutura dos objetos melhorada; estabilidade do adaptador e validação reforçadas.",
-				"nl": "Objectstructuur verbeterd; de stabiliteit en validatie van de adapter zijn verbeterd.",
-				"fr": "Structure des objets remaniée ; stabilité de l’adaptateur et validation améliorées.",
-				"it": "Migliorata la struttura degli oggetti; aumentate la stabilità dell’adattatore e la qualità della convalida.",
-				"es": "Se mejoró la estructura de los objetos, así como la estabilidad y la validación del adaptador.",
-				"pl": "Ulepszono strukturę obiektów, stabilność adaptera i walidację.",
-				"uk": "Удосконалено структуру об’єктів, підвищено стабільність адаптера та покращено перевірку даних.",
-				"zh-cn": "改进了对象结构，并增强了适配器的稳定性和数据验证。"
-			},
-			"0.0.1": {
-				"en": "Initial release",
-				"de": "Erstveröffentlichung",
-				"ru": "Первый выпуск",
-				"pt": "Versão inicial",
-				"nl": "Eerste uitgave",
-				"fr": "Version initiale",
-				"it": "Versione iniziale",
-				"es": "Versión inicial",
-				"pl": "Pierwsze wydanie",
-				"uk": "Перший випуск",
-				"zh-cn": "初始版本"
 			}
 		},
 		"titleLang": {
