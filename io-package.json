@@ -3,6 +3,19 @@
 		"name": "millheater",
 		"version": "0.1.0",
 		"news": {
+			"0.1.1": {
+				"en": "Adjustments based on RepoChecker recommendations",
+				"de": "Anpassungen gemäß RepoChecker-Empfehlungen",
+				"ru": "Корректировки на основе рекомендаций RepoChecker",
+				"pt": "Ajustes baseados nas recomendações do RepoChecker",
+				"nl": "Aanpassingen op basis van RepoChecker-aanbevelingen",
+				"fr": "Ajustements basés sur les recommandations de RepoChecker",
+				"it": "Aggiustamenti basati sulle raccomandazioni di RepoChecker",
+				"es": "Ajustes basados ​​en las recomendaciones de RepoChecker",
+				"pl": "Korekty oparte na zaleceniach RepoChecker",
+				"uk": "Коригування на основі рекомендацій RepoChecker",
+				"zh-cn": "根据 RepoChecker 建议进行调整"
+			},
 			"0.1.0": {
 				"en": "First feature-complete development release with improved API handling, validation, polling and object structure.",
 				"de": "Erste vollständige Entwicklungsversion mit verbesserter API-Verarbeitung, Validierung, Abfragelogik und Objektstruktur.",
