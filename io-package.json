@@ -5,36 +5,108 @@
 		"news": {
 			"0.1.0": {
 				"en": "First feature-complete development release with improved API handling, validation, polling and object structure.",
-				"de": "Erste vollständige Entwicklungsversion mit verbesserter API-Verarbeitung, Validierung, Abfragelogik und Objektstruktur."
+				"de": "Erste vollständige Entwicklungsversion mit verbesserter API-Verarbeitung, Validierung, Abfragelogik und Objektstruktur.",
+				"ru": "Первая полнофункциональная версия для разработки с улучшенной обработкой API, проверкой данных, опросом и структурой объектов.",
+				"pt": "Primeira versão de desenvolvimento com funcionalidades completas e melhorias no tratamento da API, na validação, na consulta periódica e na estrutura dos objetos.",
+				"nl": "Eerste ontwikkelversie met volledige functionaliteit en verbeteringen in API-verwerking, validatie, polling en objectstructuur.",
+				"fr": "Première version de développement complète, avec une meilleure gestion de l’API, une validation améliorée, des interrogations périodiques et une structure des objets optimisée.",
+				"it": "Prima versione di sviluppo completa, con miglioramenti nella gestione dell’API, nella convalida, nelle interrogazioni periodiche e nella struttura degli oggetti.",
+				"es": "Primera versión de desarrollo con todas las funciones previstas e importantes mejoras en la gestión de la API, la validación, las consultas periódicas y la estructura de los objetos.",
+				"pl": "Pierwsza kompletna wersja rozwojowa z ulepszoną obsługą API, walidacją, odpytywaniem i strukturą obiektów.",
+				"uk": "Перший повнофункціональний випуск для розробки з покращеною обробкою API, перевіркою даних, опитуванням і структурою об’єктів.",
+				"zh-cn": "首个功能完整的开发版本，改进了 API 处理、数据验证、轮询机制和对象结构。"
 			},
 			"0.0.5": {
 				"en": "Improved startup recovery and API handling.",
-				"de": "Verbesserte Logik beim Start und API-Verarbeitung."
+				"de": "Verbesserte Logik beim Start und API-Verarbeitung.",
+				"ru": "Улучшена обработка ошибок при запуске и взаимодействие с API.",
+				"pt": "Melhorias na recuperação durante a inicialização e no tratamento da API.",
+				"nl": "Verbeterde herstelprocedure bij het opstarten en verbeterde API-verwerking.",
+				"fr": "Amélioration de la reprise au démarrage et de la gestion de l’API.",
+				"it": "Migliorata la gestione del ripristino all’avvio e delle richieste API.",
+				"es": "Mejoras en la recuperación durante el inicio y en la gestión de la API.",
+				"pl": "Ulepszono odzyskiwanie działania podczas uruchamiania i obsługę API.",
+				"uk": "Покращено відновлення роботи під час запуску та обробку API.",
+				"zh-cn": "改进了启动恢复机制和 API 处理。"
 			},
 			"0.0.4": {
 				"en": "Improved API call handling and update checks, Node.js 22",
-				"de": "API-Zugriffe optimiert, auf Node.js 22 umgestellt"
+				"de": "API-Zugriffe optimiert, auf Node.js 22 umgestellt",
+				"ru": "Улучшена обработка вызовов API и проверка обновлений; переход на Node.js 22.",
+				"pt": "Melhorias no tratamento das chamadas à API e na verificação de atualizações; migração para o Node.js 22.",
+				"nl": "Verbeterde afhandeling van API-aanroepen en updatecontroles; overgestapt op Node.js 22.",
+				"fr": "Amélioration de la gestion des appels API et de la vérification des mises à jour ; passage à Node.js 22.",
+				"it": "Migliorata la gestione delle chiamate API e il controllo degli aggiornamenti; passaggio a Node.js 22.",
+				"es": "Mejoras en la gestión de las llamadas a la API y en la comprobación de actualizaciones; migración a Node.js 22.",
+				"pl": "Ulepszono obsługę wywołań API i sprawdzanie aktualizacji; przejście na Node.js 22.",
+				"uk": "Покращено обробку викликів API та перевірку оновлень; перехід на Node.js 22.",
+				"zh-cn": "改进了 API 调用处理和更新检查，并升级至 Node.js 22。"
 			},
 			"0.0.3": {
 				"en": "Add configurable API timeout and polling validation",
-				"de": "Konfigurierbaren API-Timeout und Abfrageintervall-Validierung hinzugefügt"
+				"de": "Konfigurierbaren API-Timeout und Abfrageintervall-Validierung hinzugefügt",
+				"ru": "Добавлена настройка тайм-аута API и проверка интервалов опроса.",
+				"pt": "Adicionados o tempo limite configurável da API e a validação dos intervalos de consulta.",
+				"nl": "Configureerbare API-time-out en validatie van pollingintervallen toegevoegd.",
+				"fr": "Ajout d’un délai d’expiration configurable pour l’API et de la validation des intervalles d’interrogation.",
+				"it": "Aggiunti il timeout API configurabile e la convalida degli intervalli di interrogazione.",
+				"es": "Se añadieron un tiempo de espera configurable para la API y la validación de los intervalos de consulta.",
+				"pl": "Dodano konfigurowalny limit czasu API i walidację interwałów odpytywania.",
+				"uk": "Додано налаштування тайм-ауту API та перевірку інтервалів опитування.",
+				"zh-cn": "新增可配置的 API 超时时间和轮询间隔验证。"
 			},
 			"0.0.2": {
 				"en": "Object structure improved, Improved adapter stability and validation",
-				"de": "Objektstruktur überarbeitet, Adapterstabilität und Validierung verbessert"
+				"de": "Objektstruktur überarbeitet, Adapterstabilität und Validierung verbessert",
+				"ru": "Переработана структура объектов, повышены стабильность адаптера и качество проверки данных.",
+				"pt": "Estrutura dos objetos melhorada; estabilidade do adaptador e validação reforçadas.",
+				"nl": "Objectstructuur verbeterd; de stabiliteit en validatie van de adapter zijn verbeterd.",
+				"fr": "Structure des objets remaniée ; stabilité de l’adaptateur et validation améliorées.",
+				"it": "Migliorata la struttura degli oggetti; aumentate la stabilità dell’adattatore e la qualità della convalida.",
+				"es": "Se mejoró la estructura de los objetos, así como la estabilidad y la validación del adaptador.",
+				"pl": "Ulepszono strukturę obiektów, stabilność adaptera i walidację.",
+				"uk": "Удосконалено структуру об’єктів, підвищено стабільність адаптера та покращено перевірку даних.",
+				"zh-cn": "改进了对象结构，并增强了适配器的稳定性和数据验证。"
 			},
 			"0.0.1": {
-				"en": "initial release",
-				"de": "Erstveröffentlichung"
+				"en": "Initial release",
+				"de": "Erstveröffentlichung",
+				"ru": "Первый выпуск",
+				"pt": "Versão inicial",
+				"nl": "Eerste uitgave",
+				"fr": "Version initiale",
+				"it": "Versione iniziale",
+				"es": "Versión inicial",
+				"pl": "Pierwsze wydanie",
+				"uk": "Перший випуск",
+				"zh-cn": "初始版本"
 			}
 		},
 		"titleLang": {
 			"en": "Mill Heater",
-			"de": "Millheizung"
+			"de": "Millheizung",
+			"ru": "Обогреватель Mill",
+			"pt": "Aquecedor Mill",
+			"nl": "Mill-verwarming",
+			"fr": "Chauffage Mill",
+			"it": "Riscaldatore Mill",
+			"es": "Calefactor Mill",
+			"pl": "Grzejnik Mill",
+			"uk": "Обігрівач Mill",
+			"zh-cn": "Mill 暖风设备"
 		},
 		"desc": {
 			"en": "Integrate Mill heating via the local API",
-			"de": "Mill Heizung über die lokale API integrieren"
+			"de": "Mill Heizung über die lokale API integrieren",
+			"ru": "Интеграция отопительных приборов Mill через локальный API",
+			"pt": "Integrar aquecedores Mill através da API local",
+			"nl": "Mill-verwarming integreren via de lokale API",
+			"fr": "Intégrer le chauffage Mill via l’API locale",
+			"it": "Integrare il riscaldamento Mill tramite l’API locale",
+			"es": "Integrar la calefacción Mill mediante la API local",
+			"pl": "Integracja ogrzewania Mill za pomocą lokalnego API",
+			"uk": "Інтеграція обігрівачів Mill через локальний API",
+			"zh-cn": "通过本地 API 集成 Mill 暖气设备"
 		},
 		"authors": [
 			"webbummler <moin@webbummler.de>"
@@ -70,7 +142,7 @@
 		],
 		"globalDependencies": [
 			{
-				"admin": ">=7.6.17"
+				"admin": ">=7.6.20"
 			}
 		]
 	},
