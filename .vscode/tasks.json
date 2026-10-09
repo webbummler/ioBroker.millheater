@@ -40,6 +40,15 @@
                 "cwd": "${workspaceFolder}"
             },
             "problemMatcher": []
+        },
+                {
+            "label": "Millheater: Übersetzung erstellen",
+            "type": "shell",
+            "command": "npm run translate",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
         }
     ]
 }

@@ -420,6 +420,10 @@ For state objects, the adapter uses the official ioBroker state roles.
 
 ## Changelog
 
+### 0.1.2
+
+* weitere Anpassungen gemäß RepoChecker-Empfehlungen
+
 ### 0.1.1
 
 * Anpassungen gemäß RepoChecker-Empfehlungen
