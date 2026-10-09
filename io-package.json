@@ -1,8 +1,12 @@
 {
 	"common": {
 		"name": "millheater",
-		"version": "0.0.5",
+		"version": "0.1.0",
 		"news": {
+			"0.1.0": {
+				"en": "First feature-complete development release with improved API handling, validation, polling and object structure.",
+				"de": "Erste vollständige Entwicklungsversion mit verbesserter API-Verarbeitung, Validierung, Abfragelogik und Objektstruktur."
+			},
 			"0.0.5": {
 				"en": "Improved startup recovery and API handling.",
 				"de": "Verbesserte Logik beim Start und API-Verarbeitung."
@@ -66,7 +70,7 @@
 		],
 		"globalDependencies": [
 			{
-				"admin": ">=7.0.23"
+				"admin": ">=7.6.17"
 			}
 		]
 	},
@@ -77,5 +81,33 @@
     	"pollInterval2": 86400
 	},
 	"objects": [],
-	"instanceObjects": []
+	"instanceObjects": [
+		{
+			"_id": "info",
+			"type": "channel",
+			"common": {
+				"name": {
+					"en": "Information",
+					"de": "Information"
+				}
+			},
+			"native": {}
+		},
+		{
+		"_id": "info.connection",
+		"type": "state",
+		"common": {
+			"name": {
+				"en": "Connection",
+				"de": "Verbindung"
+			},
+			"type": "boolean",
+			"role": "indicator.connected",
+			"read": true,
+			"write": false,
+			"def": false
+		},
+		"native": {}
+		}
+	]
 }

@@ -518,25 +518,6 @@ class Millheater extends utils.Adapter {
    * objects are not overwritten.
    */
   async createObjects() {
-    await this.setObjectNotExistsAsync("info", {
-      type: "channel",
-      common: {
-        name: "Information"
-      },
-      native: {}
-    });
-    await this.setObjectNotExistsAsync("info.connection", {
-      type: "state",
-      common: {
-        name: "Connection",
-        type: "boolean",
-        role: "indicator.connected",
-        read: true,
-        write: false,
-        def: false
-      },
-      native: {}
-    });
     await this.setObjectNotExistsAsync("status", {
       type: "channel",
       common: {
@@ -580,7 +561,7 @@ class Millheater extends utils.Adapter {
           de: "API-/Firmwareversionsnummer"
         },
         type: "string",
-        role: "info.version",
+        role: "info.firmware",
         read: true,
         write: false
       },

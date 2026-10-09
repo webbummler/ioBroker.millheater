@@ -67,17 +67,6 @@ Open:
 
 **Adapters → Available → millheater → Install**
 
-### Manual installation
-
-The adapter can also be installed from npm:
-
-```bash
-cd /opt/iobroker
-npm install iobroker.millheater
-```
-
-After installation, create an instance of the adapter in the ioBroker administration interface.
-
 ## Configuration
 
 The adapter requires the IP address of the Mill heater.
@@ -435,35 +424,39 @@ For state objects, the adapter uses the official ioBroker state roles.
 
 ## Changelog
 
+### 0.1.0
+
+* First feature-complete development release with improved API handling, validation, polling and object structure.
+
 ### 0.0.5
 
-* Verbesserte Startlogik, wenn die erste Statusabfrage fehl schlägt
+* Improved startup handling if the initial status request fails
 
 ### 0.0.4
 
-* API-Zugriffe gegen parallele Anfragen abgesichert
-* Beim Beenden des Adapters werden wartende und laufende API-Anfragen berücksichtigt
-* info.connection ergänzt
-* Unterstützung für Node.js 22 aktualisiert
-* Abhängigkeiten und TypeScript-Konfiguration auf Node.js 22 aktualisiert
+* Protected API requests against parallel access
+* Properly handled pending and running API requests when shutting down the adapter
+* Updated `info.connection`
+* Updated support for Node.js 22
+* Updated dependencies and TypeScript configuration for Node.js 22
 
 ### 0.0.3
 
-* Konfigurierbaren API-Timeout hinzugefügt
-* Validierung der schnellen und langsamen Abfrageintervalle anhand des konfigurierten API-Timeouts hinzugefügt
+* Added configurable API request timeout
+* Added validation of the fast and slow polling intervals based on the configured API request timeout
 
 ### 0.0.2
 
-* Objektstruktur überarbeitet
-* Kein zusätzliches Device-Objekt für einzelne Heater
-* Adapterinstanz ist jeweils einem Heater zugeordnet
-* info.connection ergänzt
+* Improved object structure
+* Removed additional device object for individual heaters
+* Each adapter instance is assigned to a single heater
+* Added `info.connection`
 
 ### 0.0.1
 
-* Erste Version
-* Lokale Mill-Heater-API integriert
-* Auslesen von Status, Control-Status und Einstellungen
+* First version
+* Integrated the local Mill Heater API
+* Added reading of status, control status and settings
 
 ## License
 
