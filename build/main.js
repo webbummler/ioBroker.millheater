@@ -22,7 +22,7 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   mod
 ));
 var utils = __toESM(require("@iobroker/adapter-core"));
-var http = __toESM(require("http"));
+var http = __toESM(require("node:http"));
 var import_async_mutex = require("async-mutex");
 class Millheater extends utils.Adapter {
   ipAddress = "";

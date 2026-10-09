@@ -11,6 +11,5 @@
   "Polling interval 2": "Intervallo di interrogazione 2",
   "Polling interval 2 is too short. It must be at least ${data.pollInterval1 + data.apiTimeout} seconds.": "L'intervallo di polling 2 è troppo breve. Deve durare almeno ${data.pollInterval1 + data.apiTimeout} secondi.",
   "Seconds": "Secondi",
-  "Timeout is too short. It must be at least 1 second.": "Il timeout è troppo breve. Deve durare almeno 1 secondo.",
-  "millheater adapter settings": "Impostazioni dell'adattatore per millheater"
+  "Timeout is too short. It must be at least 1 second.": "Il timeout è troppo breve. Deve durare almeno 1 secondo."
 }
