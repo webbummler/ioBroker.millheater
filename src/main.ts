@@ -3,7 +3,7 @@
  */
 
 import * as utils from "@iobroker/adapter-core";
-import * as http from "http";
+import * as http from "node:http";
 import { E_ALREADY_LOCKED, E_CANCELED, Mutex, tryAcquire } from "async-mutex";
 
 class Millheater extends utils.Adapter {
