@@ -1,0 +1,27 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Millheater: Alle Prüfungen",
+            "type": "shell",
+            "command": "npm run lint && npm test && npm run check",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Millheater: RepoChecker",
+            "type": "shell",
+            "command": "npx @iobroker/repochecker https://github.com/webbummler/ioBroker.millheater main",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        }
+    ]
+}
