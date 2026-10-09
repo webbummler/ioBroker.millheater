@@ -1,8 +1,21 @@
 {
 	"common": {
 		"name": "millheater",
-		"version": "0.1.2",
+		"version": "0.1.3",
 		"news": {
+			"0.1.3": {
+				"en": "Again some more Adjustments based on RepoChecker recommendations",
+				"de": "Nochmals einige weitere Anpassungen basierend auf RepoChecker-Empfehlungen",
+				"ru": "Еще несколько корректировок на основе рекомендаций RepoChecker.",
+				"pt": "Mais uma vez, mais alguns ajustes com base nas recomendações do RepoChecker",
+				"nl": "Opnieuw enkele aanpassingen op basis van RepoChecker-aanbevelingen",
+				"fr": "Encore quelques ajustements supplémentaires basés sur les recommandations de RepoChecker",
+				"it": "Ancora qualche aggiustamento in base alle raccomandazioni di RepoChecker",
+				"es": "Nuevamente algunos ajustes más basados ​​en las recomendaciones de RepoChecker",
+				"pl": "Ponownie kilka korekt opartych na zaleceniach RepoChecker",
+				"uk": "Знову ще кілька коригувань на основі рекомендацій RepoChecker",
+				"zh-cn": "再次根据 RepoChecker 建议进行一些调整"
+			},
 			"0.1.2": {
 				"en": "Some more Adjustments based on RepoChecker recommendations",
 				"de": "Einige weitere Anpassungen basierend auf RepoChecker-Empfehlungen",
@@ -41,45 +54,6 @@
 				"pl": "Pierwsza kompletna wersja rozwojowa z ulepszoną obsługą API, walidacją, odpytywaniem i strukturą obiektów.",
 				"uk": "Перший повнофункціональний випуск для розробки з покращеною обробкою API, перевіркою даних, опитуванням і структурою об’єктів.",
 				"zh-cn": "首个功能完整的开发版本，改进了 API 处理、数据验证、轮询机制和对象结构。"
-			},
-			"0.0.5": {
-				"en": "Improved startup recovery and API handling.",
-				"de": "Verbesserte Logik beim Start und API-Verarbeitung.",
-				"ru": "Улучшена обработка ошибок при запуске и взаимодействие с API.",
-				"pt": "Melhorias na recuperação durante a inicialização e no tratamento da API.",
-				"nl": "Verbeterde herstelprocedure bij het opstarten en verbeterde API-verwerking.",
-				"fr": "Amélioration de la reprise au démarrage et de la gestion de l’API.",
-				"it": "Migliorata la gestione del ripristino all’avvio e delle richieste API.",
-				"es": "Mejoras en la recuperación durante el inicio y en la gestión de la API.",
-				"pl": "Ulepszono odzyskiwanie działania podczas uruchamiania i obsługę API.",
-				"uk": "Покращено відновлення роботи під час запуску та обробку API.",
-				"zh-cn": "改进了启动恢复机制和 API 处理。"
-			},
-			"0.0.4": {
-				"en": "Improved API call handling and update checks, Node.js 22",
-				"de": "API-Zugriffe optimiert, auf Node.js 22 umgestellt",
-				"ru": "Улучшена обработка вызовов API и проверка обновлений; переход на Node.js 22.",
-				"pt": "Melhorias no tratamento das chamadas à API e na verificação de atualizações; migração para o Node.js 22.",
-				"nl": "Verbeterde afhandeling van API-aanroepen en updatecontroles; overgestapt op Node.js 22.",
-				"fr": "Amélioration de la gestion des appels API et de la vérification des mises à jour ; passage à Node.js 22.",
-				"it": "Migliorata la gestione delle chiamate API e il controllo degli aggiornamenti; passaggio a Node.js 22.",
-				"es": "Mejoras en la gestión de las llamadas a la API y en la comprobación de actualizaciones; migración a Node.js 22.",
-				"pl": "Ulepszono obsługę wywołań API i sprawdzanie aktualizacji; przejście na Node.js 22.",
-				"uk": "Покращено обробку викликів API та перевірку оновлень; перехід на Node.js 22.",
-				"zh-cn": "改进了 API 调用处理和更新检查，并升级至 Node.js 22。"
-			},
-			"0.0.3": {
-				"en": "Add configurable API timeout and polling validation",
-				"de": "Konfigurierbaren API-Timeout und Abfrageintervall-Validierung hinzugefügt",
-				"ru": "Добавлена настройка тайм-аута API и проверка интервалов опроса.",
-				"pt": "Adicionados o tempo limite configurável da API e a validação dos intervalos de consulta.",
-				"nl": "Configureerbare API-time-out en validatie van pollingintervallen toegevoegd.",
-				"fr": "Ajout d’un délai d’expiration configurable pour l’API et de la validation des intervalles d’interrogation.",
-				"it": "Aggiunti il timeout API configurabile e la convalida degli intervalli di interrogazione.",
-				"es": "Se añadieron un tiempo de espera configurable para la API y la validación de los intervalos de consulta.",
-				"pl": "Dodano konfigurowalny limit czasu API i walidację interwałów odpytywania.",
-				"uk": "Додано налаштування тайм-ауту API та перевірку інтервалів опитування.",
-				"zh-cn": "新增可配置的 API 超时时间和轮询间隔验证。"
 			}
 		},
 		"titleLang": {
