@@ -1,15 +1,15 @@
 {
-  "Mill heater IP address": "IP-Adresse der Mill-Heizung",
-  "IP address of the Mill heater on the local network.": "IP-Adresse der Mill-Heizung im lokalen Netzwerk.",
-  "Invalid IP address": "Ungültige IP-Adresse",
   "HTTP timeout": "HTTP-Timeout",
-  "Maximum wait time for a response from the local Mill API.": "Maximale Wartezeit auf eine Antwort der lokalen Mill-API.",
-  "Timeout is too short. It must be at least 1 second.": "Timeout ist zu klein konfiguriert. Er muss mindestens 1 Sekunde betragen.",
-  "Polling interval 1": "Abfrageintervall 1",
+  "IP address of the Mill heater on the local network.": "IP-Adresse der Mill-Heizung im lokalen Netzwerk.",
   "Interval for the normal (fast) polling of the Mill heater in seconds. Must be at least HTTP timeout (${data.apiTimeout}) + 1 second.": "Intervall für die normale (schnelle) Abfrage der Mill-Heizung in Sekunden. Muss mindestens HTTP-Timeout (${data.apiTimeout}) + 1 Sekunde betragen.",
+  "Interval for the second, longer-term (slow) polling in seconds. Must be at least polling interval 1 (${data.pollInterval1}) + HTTP timeout (${data.apiTimeout}).": "Intervall für die zweite, längerfristige (langsame) Abfrage in Sekunden. Muss mindestens Abfrageintervall 1 (${data.pollInterval1}) + HTTP-Timeout (${data.apiTimeout}) betragen.",
+  "Invalid IP address": "Ungültige IP-Adresse",
+  "Maximum wait time for a response from the local Mill API.": "Maximale Wartezeit auf eine Antwort der lokalen Mill-API.",
+  "Mill heater IP address": "IP-Adresse der Mill-Heizung",
+  "Polling interval 1": "Abfrageintervall 1",
   "Polling interval 1 is too short. It must be at least ${data.apiTimeout + 1} seconds.": "Abfrageintervall 1 ist zu klein konfiguriert. Es muss mindestens ${data.apiTimeout + 1} Sekunden betragen.",
   "Polling interval 2": "Abfrageintervall 2",
-  "Interval for the second, longer-term (slow) polling in seconds. Must be at least polling interval 1 (${data.pollInterval1}) + HTTP timeout (${data.apiTimeout}).": "Intervall für die zweite, längerfristige (langsame) Abfrage in Sekunden. Muss mindestens Abfrageintervall 1 (${data.pollInterval1}) + HTTP-Timeout (${data.apiTimeout}) betragen.",
   "Polling interval 2 is too short. It must be at least ${data.pollInterval1 + data.apiTimeout} seconds.": "Abfrageintervall 2 ist zu klein konfiguriert. Es muss mindestens ${data.pollInterval1 + data.apiTimeout} Sekunden betragen.",
-  "Seconds": "Sekunden"
+  "Seconds": "Sekunden",
+  "Timeout is too short. It must be at least 1 second.": "Timeout ist zu klein konfiguriert. Er muss mindestens 1 Sekunde betragen."
 }

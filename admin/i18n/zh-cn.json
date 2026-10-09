@@ -1,3 +1,16 @@
 {
-	"millheater adapter settings": "millheater的适配器设置"
+  "HTTP timeout": "HTTP 超时",
+  "IP address of the Mill heater on the local network.": "本地网络上磨坊加热器的 IP 地址。",
+  "Interval for the normal (fast) polling of the Mill heater in seconds. Must be at least HTTP timeout (${data.apiTimeout}) + 1 second.": "磨机加热器正常（快速）轮询的时间间隔（以秒为单位）。必须至少为 HTTP 超时 (${data.apiTimeout}) + 1 秒。",
+  "Interval for the second, longer-term (slow) polling in seconds. Must be at least polling interval 1 (${data.pollInterval1}) + HTTP timeout (${data.apiTimeout}).": "第二次长期（慢速）轮询的时间间隔（以秒为单位）。必须至少为轮询间隔 1 (${data.pollInterval1}) + HTTP 超时 (${data.apiTimeout})。",
+  "Invalid IP address": "IP 地址无效",
+  "Maximum wait time for a response from the local Mill API.": "来自本地 Mill API 响应的最长等待时间。",
+  "Mill heater IP address": "磨机加热器 IP 地址",
+  "Polling interval 1": "轮询间隔 1",
+  "Polling interval 1 is too short. It must be at least ${data.apiTimeout + 1} seconds.": "轮询间隔 1 太短。它必须至少为 ${data.apiTimeout + 1} 秒。",
+  "Polling interval 2": "轮询间隔 2",
+  "Polling interval 2 is too short. It must be at least ${data.pollInterval1 + data.apiTimeout} seconds.": "轮询间隔 2 太短。它必须至少为 ${data.pollInterval1 + data.apiTimeout} 秒。",
+  "Seconds": "秒数",
+  "Timeout is too short. It must be at least 1 second.": "超时时间太短。必须至少为 1 秒。",
+  "millheater adapter settings": "millheater的适配器设置"
 }

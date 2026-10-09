@@ -1,3 +1,16 @@
 {
-	"millheater adapter settings": "Impostazioni dell'adattatore per millheater"
+  "HTTP timeout": "Timeout HTTP",
+  "IP address of the Mill heater on the local network.": "Indirizzo IP del riscaldatore Mill sulla rete locale.",
+  "Interval for the normal (fast) polling of the Mill heater in seconds. Must be at least HTTP timeout (${data.apiTimeout}) + 1 second.": "Intervallo in secondi per il polling normale (veloce) del riscaldatore del Mulino. Deve essere almeno un timeout HTTP (${data.apiTimeout}) + 1 secondo.",
+  "Interval for the second, longer-term (slow) polling in seconds. Must be at least polling interval 1 (${data.pollInterval1}) + HTTP timeout (${data.apiTimeout}).": "Intervallo per il secondo polling a lungo termine (lento) in secondi. Deve essere almeno l'intervallo di polling 1 (${data.pollInterval1}) + timeout HTTP (${data.apiTimeout}).",
+  "Invalid IP address": "Indirizzo IP non valido",
+  "Maximum wait time for a response from the local Mill API.": "Tempo massimo di attesa per una risposta dall'API Mill locale.",
+  "Mill heater IP address": "Indirizzo IP del riscaldatore del mulino",
+  "Polling interval 1": "Intervallo di polling 1",
+  "Polling interval 1 is too short. It must be at least ${data.apiTimeout + 1} seconds.": "L'intervallo di polling 1 è troppo breve. Deve durare almeno ${data.apiTimeout + 1} secondi.",
+  "Polling interval 2": "Intervallo di interrogazione 2",
+  "Polling interval 2 is too short. It must be at least ${data.pollInterval1 + data.apiTimeout} seconds.": "L'intervallo di polling 2 è troppo breve. Deve durare almeno ${data.pollInterval1 + data.apiTimeout} secondi.",
+  "Seconds": "Secondi",
+  "Timeout is too short. It must be at least 1 second.": "Il timeout è troppo breve. Deve durare almeno 1 secondo.",
+  "millheater adapter settings": "Impostazioni dell'adattatore per millheater"
 }
