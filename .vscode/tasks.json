@@ -22,6 +22,15 @@
                 "cwd": "${workspaceFolder}"
             },
             "problemMatcher": []
+        },
+                {
+            "label": "Millheater: Dev-Server starten",
+            "type": "shell",
+            "command": "npm run dev-server watch",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
         }
     ]
 }
