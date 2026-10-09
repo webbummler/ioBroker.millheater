@@ -23,10 +23,19 @@
             },
             "problemMatcher": []
         },
-                {
+        {
             "label": "Millheater: Dev-Server starten",
             "type": "shell",
             "command": "npm run dev-server watch",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Millheater: Tests starten",
+            "type": "shell",
+            "command": "npm run dev-server -- stop && iobroker stop && npm run test:integration",
             "options": {
                 "cwd": "${workspaceFolder}"
             },
