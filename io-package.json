@@ -1,8 +1,21 @@
 {
 	"common": {
 		"name": "millheater",
-		"version": "0.1.3",
+		"version": "0.1.4",
 		"news": {
+			"0.1.4": {
+				"en": "Update TypeScript to version 6 and adjust compiler configuration.",
+				"de": "Aktualisieren Sie TypeScript auf Version 6 und passen Sie die Compilerkonfiguration an.",
+				"ru": "Обновите TypeScript до версии 6 и настройте конфигурацию компилятора.",
+				"pt": "Atualize o TypeScript para a versão 6 e ajuste a configuração do compilador.",
+				"nl": "Update TypeScript naar versie 6 en pas de compilerconfiguratie aan.",
+				"fr": "Mettez à jour TypeScript vers la version 6 et ajustez la configuration du compilateur.",
+				"it": "Aggiorna TypeScript alla versione 6 e modifica la configurazione del compilatore.",
+				"es": "Actualice TypeScript a la versión 6 y ajuste la configuración del compilador.",
+				"pl": "Zaktualizuj TypeScript do wersji 6 i dostosuj konfigurację kompilatora.",
+				"uk": "Оновіть TypeScript до версії 6 і налаштуйте конфігурацію компілятора.",
+				"zh-cn": "将 TypeScript 更新到版本 6 并调整编译器配置。"
+			},
 			"0.1.3": {
 				"en": "Again some more Adjustments based on RepoChecker recommendations",
 				"de": "Nochmals einige weitere Anpassungen basierend auf RepoChecker-Empfehlungen",

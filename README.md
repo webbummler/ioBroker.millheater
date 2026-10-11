@@ -420,6 +420,10 @@ For state objects, the adapter uses the official ioBroker state roles.
 
 ## Changelog
 
+### 0.1.4
+
+* Update auf TypeScript 6
+
 ### 0.1.3
 
 * weitere Anpassungen gemäß RepoChecker-Empfehlungen
