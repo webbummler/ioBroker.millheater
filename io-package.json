@@ -1,20 +1,33 @@
 {
 	"common": {
 		"name": "millheater",
-		"version": "0.1.5",
+		"version": "0.1.6",
 		"news": {
+			"0.1.6": {
+				"en": "Improved IPv4 address validation and editorial updates.",
+				"de": "Verbesserte IPv4-Adressvalidierung und redaktionelle Aktualisierungen.",
+				"ru": "Улучшена проверка адреса IPv4 и редакционные обновления.",
+				"pt": "Validação de endereço IPv4 aprimorada e atualizações editoriais.",
+				"nl": "Verbeterde IPv4-adresvalidatie en redactionele updates.",
+				"fr": "Amélioration de la validation des adresses IPv4 et des mises à jour éditoriales.",
+				"it": "Convalida dell'indirizzo IPv4 migliorata e aggiornamenti editoriali.",
+				"es": "Validación de direcciones IPv4 mejorada y actualizaciones editoriales.",
+				"pl": "Ulepszona weryfikacja adresów IPv4 i aktualizacje redakcyjne.",
+				"uk": "Покращена перевірка адрес IPv4 і редакційні оновлення.",
+				"zh-cn": "改进了 IPv4 地址验证和编辑更新。"
+			},
 			"0.1.5": {
-				"en": "Update TypeScript to version 6 and adjust compiler configuration.",
-				"de": "Aktualisieren Sie TypeScript auf Version 6 und passen Sie die Compilerkonfiguration an.",
-				"ru": "Обновите TypeScript до версии 6 и настройте конфигурацию компилятора.",
-				"pt": "Atualize o TypeScript para a versão 6 e ajuste a configuração do compilador.",
-				"nl": "Update TypeScript naar versie 6 en pas de compilerconfiguratie aan.",
-				"fr": "Mettez à jour TypeScript vers la version 6 et ajustez la configuration du compilateur.",
-				"it": "Aggiorna TypeScript alla versione 6 e modifica la configurazione del compilatore.",
-				"es": "Actualice TypeScript a la versión 6 y ajuste la configuración del compilador.",
-				"pl": "Zaktualizuj TypeScript do wersji 6 i dostosuj konfigurację kompilatora.",
-				"uk": "Оновіть TypeScript до версії 6 і налаштуйте конфігурацію компілятора.",
-				"zh-cn": "将 TypeScript 更新到版本 6 并调整编译器配置。"
+				"en": "Adjustments based on RepoChecker recommendations and npm requirements.",
+				"de": "Anpassungen basierend auf RepoChecker-Empfehlungen und NPM-Anforderungen.",
+				"ru": "Корректировки на основе рекомендаций RepoChecker и требований npm.",
+				"pt": "Ajustes baseados nas recomendações do RepoChecker e nos requisitos de npm.",
+				"nl": "Aanpassingen op basis van RepoChecker-aanbevelingen en NPM-vereisten.",
+				"fr": "Ajustements basés sur les recommandations de RepoChecker et les exigences npm.",
+				"it": "Aggiustamenti basati sulle raccomandazioni di RepoChecker e sui requisiti npm.",
+				"es": "Ajustes basados ​​en las recomendaciones de RepoChecker y los requisitos de npm.",
+				"pl": "Korekty oparte na zaleceniach RepoChecker i wymaganiach npm.",
+				"uk": "Коригування на основі рекомендацій RepoChecker і вимог npm.",
+				"zh-cn": "根据 RepoChecker 建议和 npm 要求进行调整。"
 			},
 			"0.1.4": {
 				"en": "Update TypeScript to version 6 and adjust compiler configuration.",
