@@ -1,8 +1,10 @@
 # No dot-directories except github/vscode
 .*/
-.vscode/
 # Ignore VS Code files except shared settings
+.vscode/*
 !.vscode/settings.json
+!.vscode/
+
 !.github/
 
 .dev-server/
