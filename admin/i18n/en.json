@@ -1,7 +1,7 @@
 {
   "Mill heater IP address": "Mill heater IP address",
-  "IP address of the Mill heater on the local network.": "IP address of the Mill heater on the local network.",
-  "Invalid IP address": "Invalid IP address",
+  "IPv4 address of the Mill heater on the local network.": "IPv4 address of the Mill heater on the local network.",
+  "IP address is required.":"IP address is required.",
   "HTTP timeout": "HTTP timeout",
   "Maximum wait time for a response from the local Mill API.": "Maximum wait time for a response from the local Mill API.",
   "Timeout is too short. It must be at least 1 second.": "Timeout is too short. It must be at least 1 second.",

@@ -1,9 +1,9 @@
 {
   "HTTP timeout": "Tiempo de espera HTTP",
-  "IP address of the Mill heater on the local network.": "Dirección IP del calentador Mill en la red local.",
+  "IP address is required.": "Se requiere dirección IP.",
+  "IPv4 address of the Mill heater on the local network.": "Dirección IPv4 del calentador Mill en la red local.",
   "Interval for the normal (fast) polling of the Mill heater in seconds. Must be at least HTTP timeout (${data.apiTimeout}) + 1 second.": "Intervalo para el sondeo normal (rápido) del calentador del molino en segundos. Debe tener al menos un tiempo de espera HTTP (${data.apiTimeout}) + 1 segundo.",
   "Interval for the second, longer-term (slow) polling in seconds. Must be at least polling interval 1 (${data.pollInterval1}) + HTTP timeout (${data.apiTimeout}).": "Intervalo para la segunda encuesta, a largo plazo (lenta), en segundos. Debe ser al menos el intervalo de sondeo 1 (${data.pollInterval1}) + tiempo de espera HTTP (${data.apiTimeout}).",
-  "Invalid IP address": "Dirección IP no válida",
   "Maximum wait time for a response from the local Mill API.": "Tiempo máximo de espera para una respuesta de la API Mill local.",
   "Mill heater IP address": "Dirección IP del calentador del molino",
   "Polling interval 1": "Intervalo de sondeo 1",
