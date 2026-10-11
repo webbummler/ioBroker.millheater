@@ -16,19 +16,6 @@
 				"uk": "Видалено перевірку адреси IPv4 і редакційні оновлення.",
 				"zh-cn": "删除了 IPv4 地址验证和编辑更新。"
 			},
-			"0.1.6": {
-				"en": "Improved IPv4 address validation and editorial updates.",
-				"de": "Verbesserte IPv4-Adressvalidierung und redaktionelle Aktualisierungen.",
-				"ru": "Улучшена проверка адреса IPv4 и редакционные обновления.",
-				"pt": "Validação de endereço IPv4 aprimorada e atualizações editoriais.",
-				"nl": "Verbeterde IPv4-adresvalidatie en redactionele updates.",
-				"fr": "Amélioration de la validation des adresses IPv4 et des mises à jour éditoriales.",
-				"it": "Convalida dell'indirizzo IPv4 migliorata e aggiornamenti editoriali.",
-				"es": "Validación de direcciones IPv4 mejorada y actualizaciones editoriales.",
-				"pl": "Ulepszona weryfikacja adresów IPv4 i aktualizacje redakcyjne.",
-				"uk": "Покращена перевірка адрес IPv4 і редакційні оновлення.",
-				"zh-cn": "改进了 IPv4 地址验证和编辑更新。"
-			},
 			"0.1.5": {
 				"en": "Adjustments based on RepoChecker recommendations and npm requirements.",
 				"de": "Anpassungen basierend auf RepoChecker-Empfehlungen und NPM-Anforderungen.",
