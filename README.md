@@ -370,6 +370,10 @@ For state objects, the adapter uses the official ioBroker state roles.
 
 ## Changelog
 
+### 0.1.7
+
+* Validierung der konfigurierten IPv4 wieder vereinfacht.
+
 ### 0.1.6
 
 * Validierung der konfigurierten IPv4-Adresse ergänzt.

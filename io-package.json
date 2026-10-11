@@ -1,8 +1,21 @@
 {
 	"common": {
 		"name": "millheater",
-		"version": "0.1.6",
+		"version": "0.1.7",
 		"news": {
+			"0.1.7": {
+				"en": "Removed IPv4 address validation and editorial updates.",
+				"de": "IPv4-Adressvalidierung und redaktionelle Aktualisierungen entfernt.",
+				"ru": "Удалена проверка адреса IPv4 и редакционные обновления.",
+				"pt": "Validação de endereço IPv4 e atualizações editoriais removidas.",
+				"nl": "Validatie van IPv4-adressen en redactionele updates verwijderd.",
+				"fr": "Suppression de la validation de l'adresse IPv4 et des mises à jour éditoriales.",
+				"it": "Rimossa la convalida dell'indirizzo IPv4 e gli aggiornamenti editoriali.",
+				"es": "Se eliminó la validación de direcciones IPv4 y las actualizaciones editoriales.",
+				"pl": "Usunięto weryfikację adresu IPv4 i aktualizacje redakcyjne.",
+				"uk": "Видалено перевірку адреси IPv4 і редакційні оновлення.",
+				"zh-cn": "删除了 IPv4 地址验证和编辑更新。"
+			},
 			"0.1.6": {
 				"en": "Improved IPv4 address validation and editorial updates.",
 				"de": "Verbesserte IPv4-Adressvalidierung und redaktionelle Aktualisierungen.",
