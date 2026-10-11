@@ -49,14 +49,14 @@ class Millheater extends utils.Adapter {
 		this.pollInterval2 = this.config.pollInterval2;
 
 		if (!this.ipAddress) {
-			this.log.error("No IP address for the Mill heater is configured..");
+			this.log.error("No IP address for the Mill heater is configured.");
 			this.terminate("No IP address for the Mill heater is configured.", utils.EXIT_CODES.INVALID_ADAPTER_CONFIG);
 			return;
 		}
 
 		if (!Number.isFinite(this.apiTimeout) || this.apiTimeout < 1) {
-			this.log.error(`HTTP interval must be at least 1 second.`);
-			this.terminate("HTTP interval must be at least 1 second.", utils.EXIT_CODES.INVALID_ADAPTER_CONFIG);
+			this.log.error(`HTTP timeout must be at least 1 second.`);
+			this.terminate("HTTP timeout must be at least 1 second.", utils.EXIT_CODES.INVALID_ADAPTER_CONFIG);
 			return;
 		}
 
