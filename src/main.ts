@@ -5,7 +5,6 @@
 import * as utils from "@iobroker/adapter-core";
 import * as http from "node:http";
 import { E_ALREADY_LOCKED, E_CANCELED, Mutex, tryAcquire } from "async-mutex";
-import { isIP } from "node:net";
 
 class Millheater extends utils.Adapter {
 	private ipAddress = "";
@@ -49,9 +48,9 @@ class Millheater extends utils.Adapter {
 		this.pollInterval1 = this.config.pollInterval1;
 		this.pollInterval2 = this.config.pollInterval2;
 
-		if (isIP(this.ipAddress) !== 4) {
-			this.log.error("A valid IPv4 address must be configured.");
-			this.terminate("A valid IPv4 address must be configured.", utils.EXIT_CODES.INVALID_ADAPTER_CONFIG);
+		if (!this.ipAddress) {
+			this.log.error("No IP address for the Mill heater is configured..");
+			this.terminate("No IP address for the Mill heater is configured.", utils.EXIT_CODES.INVALID_ADAPTER_CONFIG);
 			return;
 		}
 
