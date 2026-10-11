@@ -17,7 +17,7 @@
         {
             "label": "Millheater: RepoChecker",
             "type": "shell",
-            "command": "npx @iobroker/repochecker https://github.com/webbummler/ioBroker.millheater main",
+            "command": "npx @iobroker/repochecker https://github.com/webbummler/ioBroker.millheater main --env .env",
             "options": {
                 "cwd": "${workspaceFolder}"
             },
