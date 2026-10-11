@@ -1,7 +1,7 @@
 {
   "name": "iobroker.millheater",
   "version": "0.1.7",
-  "description": "Mill Heizung über die lokale API integrieren",
+  "description": "Integrate Mill heaters via the local API",
   "author": {
     "name": "webbummler",
     "email": "moin@webbummler.de"
