@@ -49,7 +49,7 @@ class Millheater extends utils.Adapter {
 		this.pollInterval1 = this.config.pollInterval1;
 		this.pollInterval2 = this.config.pollInterval2;
 
-		if (net.isIP(this.ipAddress) !== 4) {
+		if (isIP(this.ipAddress) !== 4) {
 			this.log.error("A valid IPv4 address must be configured.");
 			this.terminate("A valid IPv4 address must be configured.", utils.EXIT_CODES.INVALID_ADAPTER_CONFIG);
 			return;
@@ -146,7 +146,8 @@ class Millheater extends utils.Adapter {
 			}
 
 			this.log.error(
-				`Error executing API request ${method} ${path}: ${error instanceof Error ? error.message : String(error)
+				`Error executing API request ${method} ${path}: ${
+					error instanceof Error ? error.message : String(error)
 				}`,
 			);
 
@@ -252,7 +253,8 @@ class Millheater extends utils.Adapter {
 							resolve(dataRecord);
 						} catch (error) {
 							this.log.error(
-								`Invalid JSON response from ${path}: ${error instanceof Error ? error.message : String(error)
+								`Invalid JSON response from ${path}: ${
+									error instanceof Error ? error.message : String(error)
 								}`,
 							);
 							resolve(undefined);
