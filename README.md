@@ -51,17 +51,7 @@ Storage heaters are currently not supported.
 * ioBroker
 * A supported Mill heater with an available local API
 * The heater and ioBroker must be reachable within the same network
-* Node.js version compatible with the installed ioBroker version
-
-## Installation
-
-### Stable repository
-
-The adapter can be installed through the ioBroker administration interface.
-
-Open:
-
-**Adapters → Available → millheater → Install**
+* Node.js version compatible with the installed ioBroker version (Node.js 22 or newer)
 
 ## Configuration
 
@@ -85,8 +75,8 @@ The slow polling interval is used for values that normally change less frequentl
 The adapter validates the configured timing values at startup:
 
 * The HTTP timeout must be at least 1 second.
-* The fast polling interval must be at least the configured HTTP timeout.
-* The slow polling interval must be at least the fast polling interval plus the configured HTTP timeout.
+* The fast polling interval must be at least the configured HTTP timeout + 1 second.
+* The slow polling interval must be at least the fast polling interval + the configured HTTP timeout.
 
 The IP address should preferably be assigned as a fixed DHCP lease or static address so that the adapter can reliably reach the heater.
 
@@ -373,52 +363,17 @@ For read operations, invalid, missing or unavailable API values leave the existi
 
 The source code is written in TypeScript.
 
-### Install dependencies
-
-```bash
-npm install
-```
-
-### Build
-
-```bash
-npm run build
-```
-
-### Type check
-
-```bash
-npm run check
-```
-
-### Lint
-
-```bash
-npm run lint
-```
-
-### Run tests
-
-```bash
-npm test
-```
-
-### Development with dev-server
-
-The adapter can be developed and tested using `dev-server`.
-
-For details, see the [ioBroker dev-server documentation](https://github.com/ioBroker/dev-server).
-
 ## Development guidelines
 
 The adapter follows the ioBroker development and coding guidelines.
-
 For state objects, the adapter uses the official ioBroker state roles.
 
-* [ioBroker development and coding best practices](https://github.com/ioBroker/ioBroker.repositories#development-and-coding-best-practices)
-* [ioBroker state roles](https://github.com/ioBroker/ioBroker/blob/master/doc/STATE_ROLES.md)
-
 ## Changelog
+
+### 0.1.6
+
+* Validierung der konfigurierten IPv4-Adresse ergänzt.
+* Redaktionelle Überarbeitungen an Dokumentation und Konfigurationstexten.
 
 ### 0.1.5
 
@@ -427,22 +382,6 @@ For state objects, the adapter uses the official ioBroker state roles.
 ### 0.1.4
 
 * Update auf TypeScript 6
-
-### 0.1.3
-
-* weitere Anpassungen gemäß RepoChecker-Empfehlungen
-
-### 0.1.2
-
-* weitere Anpassungen gemäß RepoChecker-Empfehlungen
-
-### 0.1.1
-
-* Anpassungen gemäß RepoChecker-Empfehlungen
-
-### 0.1.0
-
-* First feature-complete development release with improved API handling, validation, polling and object structure.
 
 [Older changelogs can be found there](CHANGELOG_OLD.md)
 

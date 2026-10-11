@@ -1,4 +1,20 @@
 # Older changes
+### 0.1.3
+
+* weitere Anpassungen gemäß RepoChecker-Empfehlungen
+
+### 0.1.2
+
+* weitere Anpassungen gemäß RepoChecker-Empfehlungen
+
+### 0.1.1
+
+* Anpassungen gemäß RepoChecker-Empfehlungen
+
+### 0.1.0
+
+* First feature-complete development release with improved API handling, validation, polling and object structure.
+
 ### 0.0.5
 
 * Improved startup handling if the initial status request fails
