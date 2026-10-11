@@ -1,15 +1,15 @@
 # Older changes
 ### 0.1.3
 
-* weitere Anpassungen gemäß RepoChecker-Empfehlungen
+* Further adjustments based on RepoChecker recommendations.
 
 ### 0.1.2
 
-* weitere Anpassungen gemäß RepoChecker-Empfehlungen
+* Further adjustments based on RepoChecker recommendations.
 
 ### 0.1.1
 
-* Anpassungen gemäß RepoChecker-Empfehlungen
+* Adjustments based on RepoChecker recommendations.
 
 ### 0.1.0
 
@@ -17,30 +17,30 @@
 
 ### 0.0.5
 
-* Improved startup handling if the initial status request fails
+* Improved startup handling if the initial status request fails.
 
 ### 0.0.4
 
-* Protected API requests against parallel access
-* Properly handled pending and running API requests when shutting down the adapter
-* Updated `info.connection`
-* Updated support for Node.js 22
-* Updated dependencies and TypeScript configuration for Node.js 22
+* Protected API requests against parallel access.
+* Properly handled pending and running API requests when shutting down the adapter.
+* Updated `info.connection`.
+* Updated support for Node.js 22.
+* Updated dependencies and TypeScript configuration for Node.js 22.
 
 ### 0.0.3
 
-* Added configurable API request timeout
-* Added validation of the fast and slow polling intervals based on the configured API request timeout
+* Added configurable API request timeout.
+* Added validation of the fast and slow polling intervals based on the configured API request timeout.
 
 ### 0.0.2
 
-* Improved object structure
-* Removed additional device object for individual heaters
-* Each adapter instance is assigned to a single heater
-* Added `info.connection`
+* Improved object structure.
+* Removed additional device object for individual heaters.
+* Each adapter instance is assigned to a single heater.
+* Added `info.connection`.
 
 ### 0.0.1
 
-* First version
-* Integrated the local Mill Heater API
-* Added reading of status, control status and settings
+* First version.
+* Integrated the local Mill Heater API.
+* Added reading of status, control status and settings.

@@ -372,20 +372,16 @@ For state objects, the adapter uses the official ioBroker state roles.
 
 ### 0.1.7
 
-* Validierung der konfigurierten IPv4 wieder vereinfacht.
-
-### 0.1.6
-
-* Validierung der konfigurierten IPv4-Adresse ergänzt.
-* Redaktionelle Überarbeitungen an Dokumentation und Konfigurationstexten.
+* Simplified validation of the configured IPv4 address.
+* Made editorial improvements to the documentation and configuration text.
 
 ### 0.1.5
 
-* Anpassungen gemäß RepoChecker-Empfehlungen und für npm
+* Applied RepoChecker recommendations and made npm-related adjustments.
 
 ### 0.1.4
 
-* Update auf TypeScript 6
+* Updated TypeScript to version 6.
 
 [Older changelogs can be found there](CHANGELOG_OLD.md)
 
