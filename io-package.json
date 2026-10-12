@@ -3,6 +3,19 @@
 		"name": "millheater",
 		"version": "0.1.7",
 		"news": {
+			"0.1.8": {
+				"en": "Added maximum polling interval limits and hostname configuration, with minor editorial improvements.",
+				"de": "Maximale Grenzwerte für Abfrageintervalle und Hostnamenkonfiguration hinzugefügt, mit geringfügigen redaktionellen Verbesserungen.",
+				"ru": "Добавлены ограничения максимального интервала опроса и конфигурация имени хоста с небольшими редакционными улучшениями.",
+				"pt": "Adicionados limites máximos de intervalo de pesquisa e configuração de nome de host, com pequenas melhorias editoriais.",
+				"nl": "Maximale polling-intervallimieten en hostnaamconfiguratie toegevoegd, met kleine redactionele verbeteringen.",
+				"fr": "Ajout de limites maximales d'intervalle d'interrogation et de configuration du nom d'hôte, avec des améliorations éditoriales mineures.",
+				"it": "Aggiunti limiti massimi di intervallo di polling e configurazione del nome host, con piccoli miglioramenti editoriali.",
+				"es": "Se agregaron límites máximos de intervalo de sondeo y configuración de nombre de host, con mejoras editoriales menores.",
+				"pl": "Dodano maksymalne limity interwałów odpytywania i konfigurację nazwy hosta, z niewielkimi ulepszeniami redakcyjnymi.",
+				"uk": "Додано обмеження максимального інтервалу опитування та конфігурацію імені хоста з незначними редакційними покращеннями.",
+				"zh-cn": "添加了最大轮询间隔限制和主机名配置，并进行了细微的编辑改进。"
+			},
 			"0.1.7": {
 				"en": "Simplified IP address configuration validation and updated documentation.",
 				"de": "Vereinfachte Validierung der IP-Adresskonfiguration und aktualisierte Dokumentation.",
@@ -108,7 +121,7 @@
 		]
 	},
 	"native": {
-		"ip": "",
+		"host": "",
 		"apiTimeout": 5,
 		"pollInterval1": 30,
 		"pollInterval2": 86400
