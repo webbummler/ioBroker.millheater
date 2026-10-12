@@ -72,13 +72,13 @@ The fast polling interval is used for values such as the current temperature, he
 
 The slow polling interval is used for values that normally change less frequently, such as the temperature calibration offset.
 
-The adapter validates the configured timing values at startup:
+The adapter validates the timing values in the Admin interface and again at startup. All timing values must be integers in seconds and meet the following limits:
 
-* The HTTP timeout must be at least 1 second.
-* The fast polling interval must be at least the configured HTTP timeout + 1 second.
-* The slow polling interval must be at least the fast polling interval + the configured HTTP timeout.
+* **HTTP timeout:** Between 1 and 60 seconds.
+* **Fast polling interval:** At least the HTTP timeout + 1 second, with a maximum of 3,600 seconds (1 hour).
+* **Slow polling interval:** At least the fast polling interval + the HTTP timeout, with a maximum of 86,400 seconds (24 hours).
 
-The IP address should preferably be assigned as a fixed DHCP lease or static address or a hostname so that the adapter can reliably reach the heater.
+For reliable communication, use a static IP address, a DHCP reservation, or a hostname that resolves to the heater.
 
 ## Supported heater types
 
