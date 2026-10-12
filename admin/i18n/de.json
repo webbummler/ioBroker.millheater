@@ -1,15 +1,15 @@
 {
   "HTTP timeout": "HTTP-Timeout",
-  "IP address is required.": "IP-Adresse ist erforderlich.",
-  "IPv4 address of the Mill heater on the local network.": "IPv4-Adresse der Mill-Heizung im lokalen Netzwerk.",
-  "Interval for the normal (fast) polling of the Mill heater in seconds. Must be at least HTTP timeout (${data.apiTimeout}) + 1 second.": "Intervall für die normale (schnelle) Abfrage der Mill-Heizung in Sekunden. Muss mindestens HTTP-Timeout (${data.apiTimeout}) + 1 Sekunde betragen.",
-  "Interval for the second, longer-term (slow) polling in seconds. Must be at least polling interval 1 (${data.pollInterval1}) + HTTP timeout (${data.apiTimeout}).": "Intervall für die zweite, längerfristige (langsame) Abfrage in Sekunden. Muss mindestens Abfrageintervall 1 (${data.pollInterval1}) + HTTP-Timeout (${data.apiTimeout}) betragen.",
-  "Maximum wait time for a response from the local Mill API.": "Maximale Wartezeit auf eine Antwort der lokalen Mill-API.",
-  "Mill heater IP address": "IP-Adresse der Mill-Heizung",
+  "HTTP timeout must be an integer between 1 and 60 seconds.": "Das HTTP-Timeout muss eine Ganzzahl zwischen 1 und 60 Sekunden sein.",
+  "IPv4 address or hostname of the Mill heater on the local network.": "IPv4-Adresse oder Hostname der Mühlenheizung im lokalen Netzwerk.",
+  "Interval for the normal (fast) polling of the Mill heater in seconds. Must be at least HTTP timeout (${data.apiTimeout}) + 1 second.": "Intervall für die normale (schnelle) Abfrage der Mühlenheizung in Sekunden. Muss mindestens HTTP-Timeout (${data.apiTimeout}) + 1 Sekunde betragen.",
+  "Interval for the second, longer-term (slow) polling in seconds. Must be at least polling interval 1 (${data.pollInterval1}) + HTTP timeout (${data.apiTimeout}).": "Intervall für die zweite, längerfristige (langsame) Abfrage in Sekunden. Muss mindestens das Abfrageintervall 1 (${data.pollInterval1}) + HTTP-Timeout (${data.apiTimeout}) betragen.",
+  "Maximum wait time for a response from the local Mill API.": "Maximale Wartezeit für eine Antwort von der lokalen Mill-API.",
+  "Mill heater IP address or hostname": "IP-Adresse oder Hostname der Mühlenheizung",
   "Polling interval 1": "Abfrageintervall 1",
-  "Polling interval 1 is too short. It must be at least ${data.apiTimeout + 1} seconds.": "Abfrageintervall 1 ist zu klein konfiguriert. Es muss mindestens ${data.apiTimeout + 1} Sekunden betragen.",
+  "Polling interval 1 must be between ${data.apiTimeout + 1} and 3600 seconds.": "Abfrageintervall 1 muss zwischen ${data.apiTimeout + 1} und 3600 Sekunden liegen.",
   "Polling interval 2": "Abfrageintervall 2",
-  "Polling interval 2 is too short. It must be at least ${data.pollInterval1 + data.apiTimeout} seconds.": "Abfrageintervall 2 ist zu klein konfiguriert. Es muss mindestens ${data.pollInterval1 + data.apiTimeout} Sekunden betragen.",
+  "Polling interval 2 must be between ${data.pollInterval1 + data.apiTimeout} and 86400 seconds.": "Abfrageintervall 2 muss zwischen ${data.pollInterval1 + data.apiTimeout} und 86400 Sekunden liegen.",
   "Seconds": "Sekunden",
-  "Timeout is too short. It must be at least 1 second.": "Timeout ist zu klein konfiguriert. Er muss mindestens 1 Sekunde betragen."
+  "Valid IP address or hostname (no spaces, no http://) is required.": "Eine gültige IP-Adresse oder ein gültiger Hostname (keine Leerzeichen, kein http://) ist erforderlich."
 }

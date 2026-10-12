@@ -1,15 +1,15 @@
 {
   "HTTP timeout": "Tempo limite HTTP",
-  "IP address is required.": "O endereço IP é obrigatório.",
-  "IPv4 address of the Mill heater on the local network.": "Endereço IPv4 do aquecedor do moinho na rede local.",
+  "HTTP timeout must be an integer between 1 and 60 seconds.": "O tempo limite de HTTP deve ser um número inteiro entre 1 e 60 segundos.",
+  "IPv4 address or hostname of the Mill heater on the local network.": "Endereço IPv4 ou nome de host do aquecedor do moinho na rede local.",
   "Interval for the normal (fast) polling of the Mill heater in seconds. Must be at least HTTP timeout (${data.apiTimeout}) + 1 second.": "Intervalo para a sondagem normal (rápida) do aquecedor do Moinho em segundos. Deve ter pelo menos o tempo limite de HTTP (${data.apiTimeout}) + 1 segundo.",
   "Interval for the second, longer-term (slow) polling in seconds. Must be at least polling interval 1 (${data.pollInterval1}) + HTTP timeout (${data.apiTimeout}).": "Intervalo para a segunda pesquisa de longo prazo (lenta) em segundos. Deve ter pelo menos intervalo de pesquisa 1 (${data.pollInterval1}) + tempo limite de HTTP (${data.apiTimeout}).",
   "Maximum wait time for a response from the local Mill API.": "Tempo máximo de espera por resposta da API Mill local.",
-  "Mill heater IP address": "Endereço IP do aquecedor do moinho",
+  "Mill heater IP address or hostname": "Endereço IP ou nome de host do aquecedor do moinho",
   "Polling interval 1": "Intervalo de pesquisa 1",
-  "Polling interval 1 is too short. It must be at least ${data.apiTimeout + 1} seconds.": "O intervalo de pesquisa 1 é muito curto. Deve levar pelo menos ${data.apiTimeout + 1} segundos.",
+  "Polling interval 1 must be between ${data.apiTimeout + 1} and 3600 seconds.": "O intervalo de sondagem 1 deve estar entre ${data.apiTimeout + 1} e 3.600 segundos.",
   "Polling interval 2": "Intervalo de pesquisa 2",
-  "Polling interval 2 is too short. It must be at least ${data.pollInterval1 + data.apiTimeout} seconds.": "O intervalo de pesquisa 2 é muito curto. Deve levar pelo menos ${data.pollInterval1 + data.apiTimeout} segundos.",
+  "Polling interval 2 must be between ${data.pollInterval1 + data.apiTimeout} and 86400 seconds.": "O intervalo de sondagem 2 deve estar entre ${data.pollInterval1 + data.apiTimeout} e 86.400 segundos.",
   "Seconds": "Segundos",
-  "Timeout is too short. It must be at least 1 second.": "O tempo limite é muito curto. Deve ser pelo menos 1 segundo."
+  "Valid IP address or hostname (no spaces, no http://) is required.": "É necessário um endereço IP ou nome de host válido (sem espaços, sem http://)."
 }

@@ -4,7 +4,7 @@
 declare global {
 	namespace ioBroker {
 		interface AdapterConfig {
-			ip: string;
+			host: string;
 			apiTimeout: number;
 			pollInterval1: number;
  		    pollInterval2: number;

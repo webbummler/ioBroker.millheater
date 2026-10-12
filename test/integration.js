@@ -365,7 +365,7 @@ async function configureHarness(
 ) {
     await harness.changeAdapterConfig("millheater", {
         native: {
-            ip: `127.0.0.1:${port}`,
+            host: `127.0.0.1:${port}`,
             apiTimeout,
             pollInterval1,
             pollInterval2,

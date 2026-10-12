@@ -7,10 +7,23 @@ import * as http from "node:http";
 import { E_ALREADY_LOCKED, E_CANCELED, Mutex, tryAcquire } from "async-mutex";
 
 class Millheater extends utils.Adapter {
-	private ipAddress = "";
+	private ipHostname = "";
 	private apiTimeout = 0;
+
+	// Must match the limits in admin/jsonConfig.json
+	private readonly apiTimeoutMin = 1;
+	private readonly apiTimeoutMax = 60;
+
 	private pollInterval1 = 0;
+
+	// Must match the limits in admin/jsonConfig.json
+	private readonly pollInterval1Max = 3600;
+
 	private pollInterval2 = 0;
+
+	// Must match the limits in admin/jsonConfig.json
+	private readonly pollInterval2Max = 86400;
+
 	private heaterName = "";
 	private isUnloading = false;
 
@@ -42,25 +55,39 @@ class Millheater extends utils.Adapter {
 	private async onReady(): Promise<void> {
 		this.log.info("Mill Heater Adapter started.");
 		// Read and validate configuration once.
-		const ip = typeof this.config.ip === "string" ? this.config.ip.trim() : "";
-		this.ipAddress = ip;
+		const host = typeof this.config.host === "string" ? this.config.host.trim() : "";
+		this.ipHostname = host;
 		this.apiTimeout = this.config.apiTimeout;
 		this.pollInterval1 = this.config.pollInterval1;
 		this.pollInterval2 = this.config.pollInterval2;
 
-		if (!this.ipAddress) {
-			this.log.error("No IP address for the Mill heater is configured.");
-			this.terminate("No IP address for the Mill heater is configured.", utils.EXIT_CODES.INVALID_ADAPTER_CONFIG);
+		if (!this.ipHostname) {
+			this.log.error("No IP address or hostname for the Mill heater is configured.");
+			this.terminate(
+				"No IP address or hostnamefor the Mill heater is configured.",
+				utils.EXIT_CODES.INVALID_ADAPTER_CONFIG,
+			);
 			return;
 		}
 
-		if (!Number.isFinite(this.apiTimeout) || this.apiTimeout < 1) {
-			this.log.error(`HTTP timeout must be at least 1 second.`);
-			this.terminate("HTTP timeout must be at least 1 second.", utils.EXIT_CODES.INVALID_ADAPTER_CONFIG);
+		if (
+			!Number.isFinite(this.apiTimeout) ||
+			this.apiTimeout < this.apiTimeoutMin ||
+			this.apiTimeout > this.apiTimeoutMax
+		) {
+			this.log.error(`HTTP timeout must be between ${this.apiTimeoutMin} and ${this.apiTimeoutMax} seconds.`);
+			this.terminate(
+				"HTTP timeout must be between ${this.apiTimeoutMin} and ${this.apiTimeoutMax} seconds.",
+				utils.EXIT_CODES.INVALID_ADAPTER_CONFIG,
+			);
 			return;
 		}
 
-		if (!Number.isFinite(this.pollInterval1) || this.pollInterval1 < this.apiTimeout + 1) {
+		if (
+			!Number.isFinite(this.pollInterval1) ||
+			this.pollInterval1 < this.apiTimeout + 1 ||
+			this.pollInterval1 > this.pollInterval1Max
+		) {
 			this.log.error(`Fast polling interval must be at least ${this.apiTimeout + 1} seconds.`);
 			this.terminate(
 				`Fast polling interval must be at least ${this.apiTimeout + 1} seconds.`,
@@ -69,7 +96,11 @@ class Millheater extends utils.Adapter {
 			return;
 		}
 
-		if (!Number.isFinite(this.pollInterval2) || this.pollInterval2 < this.pollInterval1 + this.apiTimeout) {
+		if (
+			!Number.isFinite(this.pollInterval2) ||
+			this.pollInterval2 < this.pollInterval1 + this.apiTimeout ||
+			this.pollInterval2 > this.pollInterval2Max
+		) {
 			this.log.error(`Slow polling interval must be at least ${this.pollInterval1 + this.apiTimeout} seconds.`);
 			this.terminate(
 				`Slow polling interval must be at least ${this.pollInterval1 + this.apiTimeout} seconds.`,
@@ -79,7 +110,7 @@ class Millheater extends utils.Adapter {
 		}
 
 		this.log.info("Configuration loaded.");
-		this.log.info(`IP address: ${this.ipAddress}`);
+		this.log.info(`IP address / hostname: ${this.ipHostname}`);
 		this.log.info(`HTTP timeout: ${this.apiTimeout}`);
 		this.log.info(`Polling interval 1: ${this.pollInterval1} seconds`);
 		this.log.info(`Polling interval 2: ${this.pollInterval2} seconds`);
@@ -176,7 +207,7 @@ class Millheater extends utils.Adapter {
 		method: "GET" | "POST" = "GET",
 		body?: unknown,
 	): Promise<Record<string, unknown> | undefined> {
-		const url = `http://${this.ipAddress}${path}`;
+		const url = `http://${this.ipHostname}${path}`;
 		const headers: http.OutgoingHttpHeaders = {};
 		const jsonBody = body !== undefined ? JSON.stringify(body) : undefined;
 
