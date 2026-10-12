@@ -64,7 +64,7 @@ class Millheater extends utils.Adapter {
 		if (!this.ipHostname) {
 			this.log.error("No IP address or hostname for the Mill heater is configured.");
 			this.terminate(
-				"No IP address or hostnamefor the Mill heater is configured.",
+				"No IP address or hostname for the Mill heater is configured.",
 				utils.EXIT_CODES.INVALID_ADAPTER_CONFIG,
 			);
 			return;
