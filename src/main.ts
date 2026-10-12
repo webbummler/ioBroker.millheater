@@ -107,7 +107,7 @@ class Millheater extends utils.Adapter {
 				`Slow polling interval must be between ${this.pollInterval1 + this.apiTimeout} and ${this.pollInterval2Max} seconds.`,
 			);
 			this.terminate(
-				`Slow polling interval must be betwen ${this.pollInterval1 + this.apiTimeout} and ${this.pollInterval2Max}seconds.`,
+				`Slow polling interval must be between ${this.pollInterval1 + this.apiTimeout} and ${this.pollInterval2Max}seconds.`,
 				utils.EXIT_CODES.INVALID_ADAPTER_CONFIG,
 			);
 			return;
