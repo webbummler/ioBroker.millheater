@@ -1,7 +1,7 @@
 {
 	"common": {
 		"name": "millheater",
-		"version": "0.1.7",
+		"version": "0.1.8",
 		"news": {
 			"0.1.8": {
 				"en": "Added maximum polling interval limits and hostname configuration, with minor editorial improvements.",
