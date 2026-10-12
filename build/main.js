@@ -68,12 +68,12 @@ class Millheater extends utils.Adapter {
     if (!this.ipHostname) {
       this.log.error("No IP address or hostname for the Mill heater is configured.");
       this.terminate(
-        "No IP address or hostnamefor the Mill heater is configured.",
+        "No IP address or hostname for the Mill heater is configured.",
         utils.EXIT_CODES.INVALID_ADAPTER_CONFIG
       );
       return;
     }
-    if (!Number.isFinite(this.apiTimeout) || this.apiTimeout < this.apiTimeoutMin || this.apiTimeout > this.apiTimeoutMax) {
+    if (!Number.isInteger(this.apiTimeout) || this.apiTimeout < this.apiTimeoutMin || this.apiTimeout > this.apiTimeoutMax) {
       this.log.error(`HTTP timeout must be between ${this.apiTimeoutMin} and ${this.apiTimeoutMax} seconds.`);
       this.terminate(
         "HTTP timeout must be between ${this.apiTimeoutMin} and ${this.apiTimeoutMax} seconds.",
@@ -81,18 +81,22 @@ class Millheater extends utils.Adapter {
       );
       return;
     }
-    if (!Number.isFinite(this.pollInterval1) || this.pollInterval1 < this.apiTimeout + 1 || this.pollInterval1 > this.pollInterval1Max) {
-      this.log.error(`Fast polling interval must be at least ${this.apiTimeout + 1} seconds.`);
+    if (!Number.isInteger(this.pollInterval1) || this.pollInterval1 < this.apiTimeout + 1 || this.pollInterval1 > this.pollInterval1Max) {
+      this.log.error(
+        `Fast polling interval must be between ${this.apiTimeout + 1} and ${this.pollInterval1Max} seconds.`
+      );
       this.terminate(
-        `Fast polling interval must be at least ${this.apiTimeout + 1} seconds.`,
+        `Fast polling interval must be between ${this.apiTimeout + 1} and ${this.pollInterval1Max} seconds.`,
         utils.EXIT_CODES.INVALID_ADAPTER_CONFIG
       );
       return;
     }
-    if (!Number.isFinite(this.pollInterval2) || this.pollInterval2 < this.pollInterval1 + this.apiTimeout || this.pollInterval2 > this.pollInterval2Max) {
-      this.log.error(`Slow polling interval must be at least ${this.pollInterval1 + this.apiTimeout} seconds.`);
+    if (!Number.isInteger(this.pollInterval2) || this.pollInterval2 < this.pollInterval1 + this.apiTimeout || this.pollInterval2 > this.pollInterval2Max) {
+      this.log.error(
+        `Slow polling interval must be between ${this.pollInterval1 + this.apiTimeout} and ${this.pollInterval2Max} seconds.`
+      );
       this.terminate(
-        `Slow polling interval must be at least ${this.pollInterval1 + this.apiTimeout} seconds.`,
+        `Slow polling interval must be betwen ${this.pollInterval1 + this.apiTimeout} and ${this.pollInterval2Max}seconds.`,
         utils.EXIT_CODES.INVALID_ADAPTER_CONFIG
       );
       return;
