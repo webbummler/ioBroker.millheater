@@ -55,13 +55,13 @@ Storage heaters are currently not supported.
 
 ## Configuration
 
-The adapter requires the IP address of the Mill heater.
+The adapter requires the IP address or hostname of the Mill heater.
 
 ### Configuration parameters
 
 | Parameter             | Description                                          | Default |
 | --------------------- | ---------------------------------------------------- | ------: |
-| IP address            | IP address of the Mill heater                        |   empty |
+| host address          | IP address or hostname of the Mill heater            |   empty |
 | HTTP timeout          | Maximum time to wait for an HTTP request, in seconds |       5 |
 | Fast polling interval | Interval for frequently changing values, in seconds  |      30 |
 | Slow polling interval | Interval for slowly changing values, in seconds      |   86400 |
@@ -78,7 +78,7 @@ The adapter validates the configured timing values at startup:
 * The fast polling interval must be at least the configured HTTP timeout + 1 second.
 * The slow polling interval must be at least the fast polling interval + the configured HTTP timeout.
 
-The IP address should preferably be assigned as a fixed DHCP lease or static address so that the adapter can reliably reach the heater.
+The IP address should preferably be assigned as a fixed DHCP lease or static address or a hostname so that the adapter can reliably reach the heater.
 
 ## Supported heater types
 
@@ -369,6 +369,11 @@ The adapter follows the ioBroker development and coding guidelines.
 For state objects, the adapter uses the official ioBroker state roles.
 
 ## Changelog
+
+### 0.1.8
+
+* Added maximum values for polling intervals to prevent excessively long intervals. The fast polling interval is limited to a maximum of 1 hour, while the slow polling interval is limited to a maximum of 24 hours.
+* Added hostname configuration and made various editorial improvements.
 
 ### 0.1.7
 
