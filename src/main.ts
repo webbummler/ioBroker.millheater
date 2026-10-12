@@ -71,7 +71,7 @@ class Millheater extends utils.Adapter {
 		}
 
 		if (
-			!Number.isFinite(this.apiTimeout) ||
+			!Number.isInteger(this.apiTimeout) ||
 			this.apiTimeout < this.apiTimeoutMin ||
 			this.apiTimeout > this.apiTimeoutMax
 		) {
@@ -84,7 +84,7 @@ class Millheater extends utils.Adapter {
 		}
 
 		if (
-			!Number.isFinite(this.pollInterval1) ||
+			!Number.isInteger(this.pollInterval1) ||
 			this.pollInterval1 < this.apiTimeout + 1 ||
 			this.pollInterval1 > this.pollInterval1Max
 		) {
@@ -97,7 +97,7 @@ class Millheater extends utils.Adapter {
 		}
 
 		if (
-			!Number.isFinite(this.pollInterval2) ||
+			!Number.isInteger(this.pollInterval2) ||
 			this.pollInterval2 < this.pollInterval1 + this.apiTimeout ||
 			this.pollInterval2 > this.pollInterval2Max
 		) {
