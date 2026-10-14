@@ -370,6 +370,10 @@ For state objects, the adapter uses the official ioBroker state roles.
 
 ## Changelog
 
+### 0.1.9
+
+* Added multilingual translations for state names in all supported languages to improve readability and satisfy ioBroker object validation requirements.
+
 ### 0.1.8
 
 * Added maximum values for polling intervals to prevent excessively long intervals. The fast polling interval is limited to a maximum of 1 hour, while the slow polling interval is limited to a maximum of 24 hours.

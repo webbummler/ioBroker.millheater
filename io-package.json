@@ -1,8 +1,21 @@
 {
 	"common": {
 		"name": "millheater",
-		"version": "0.1.8",
+		"version": "0.1.9",
 		"news": {
+			"0.1.9": {
+				"en": "Added multilingual state-name translations.",
+				"de": "Mehrsprachige Übersetzungen von Staatsnamen hinzugefügt.",
+				"ru": "Добавлен многоязычный перевод названий штатов.",
+				"pt": "Adicionadas traduções multilíngues de nomes de estados.",
+				"nl": "Meertalige vertalingen van staatsnamen toegevoegd.",
+				"fr": "Ajout de traductions multilingues des noms d'état.",
+				"it": "Aggiunte traduzioni multilingue dei nomi degli stati.",
+				"es": "Se agregaron traducciones multilingües de nombres de estados.",
+				"pl": "Dodano wielojęzyczne tłumaczenia nazw stanów.",
+				"uk": "Додано багатомовні переклади назв штатів.",
+				"zh-cn": "添加了多语言州名翻译。"
+			},
 			"0.1.8": {
 				"en": "Added maximum polling interval limits and hostname configuration, with minor editorial improvements.",
 				"de": "Maximale Grenzwerte für Abfrageintervalle und Hostnamenkonfiguration hinzugefügt, mit geringfügigen redaktionellen Verbesserungen.",
