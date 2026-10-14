@@ -132,10 +132,7 @@
 			"_id": "info",
 			"type": "channel",
 			"common": {
-				"name": {
-					"en": "Information",
-					"de": "Information"
-				}
+				"name": "Information"
 			},
 			"native": {}
 		},
@@ -145,7 +142,16 @@
 			"common": {
 				"name": {
 					"en": "Connection",
-					"de": "Verbindung"
+					"de": "Verbindung",
+					"ru": "Подключение",
+					"pt": "Ligação",
+					"nl": "Verbinding",
+					"fr": "Connexion",
+					"it": "Connessione",
+					"es": "Conexión",
+					"pl": "Połączenie",
+					"uk": "Підключення",
+					"zh-cn": "连接"
 				},
 				"type": "boolean",
 				"role": "indicator.connected",
