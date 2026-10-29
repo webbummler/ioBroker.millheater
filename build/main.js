@@ -271,6 +271,8 @@ class Millheater extends utils.Adapter {
       await this.getHeatingLevelPercentage(skipIfBusy);
     } else if (heaterName.includes("panel")) {
       await this.getLimitedHeatingPower(skipIfBusy);
+    } else if (heaterName.includes("socket")) {
+      await this.getAdditionalMode(skipIfBusy);
     }
   }
   /**
@@ -308,35 +310,65 @@ class Millheater extends utils.Adapter {
     const switchedOn = typeof data.switched_on === "boolean" ? data.switched_on : void 0;
     if (ambientTemperature !== void 0) {
       void this.setState("control-status.ambient_temperature", ambientTemperature, true);
+      this.log.debug(`Ambient temperature updated to "${ambientTemperature}".`);
+    } else {
+      this.log.debug("Ambient temperature not updated: invalid or missing API value.");
     }
     if (connectedToCloud !== void 0) {
       void this.setState("control-status.connected_to_cloud", connectedToCloud, true);
+      this.log.debug(`Connected to cloud updated to "${connectedToCloud}".`);
+    } else {
+      this.log.debug("Connected to cloud not updated: invalid or missing API value.");
     }
     if (controlSignal !== void 0) {
       void this.setState("control-status.control_signal", controlSignal, true);
+      this.log.debug(`Control signal updated to "${controlSignal}".`);
+    } else {
+      this.log.debug("Control signal not updated: invalid or missing API value.");
     }
     if (currentPower !== void 0) {
       void this.setState("control-status.current_power", currentPower, true);
+      this.log.debug(`Current power updated to "${currentPower}".`);
+    } else {
+      this.log.debug("Current power not updated: invalid or missing API value.");
     }
     if (lockActive !== void 0) {
       void this.setState("control-status.lock_active", lockActive, true);
+      this.log.debug(`Lock active updated to "${lockActive}".`);
+    } else {
+      this.log.debug("Lock active not updated: invalid or missing API value.");
     }
     if (openWindowActiveNow !== void 0) {
       void this.setState("control-status.open_window_active_now", openWindowActiveNow, true);
+      this.log.debug(`Open window active now updated to "${openWindowActiveNow}".`);
+    } else {
+      this.log.debug("Open window active now not updated: invalid or missing API value.");
     }
     if (operationMode !== void 0) {
       void this.setState("control-status.operation_mode", operationMode, true);
+      this.log.debug(`Operation mode updated to "${operationMode}".`);
+    } else {
+      this.log.debug("Operation mode not updated: invalid or missing API value.");
     }
     if (rawAmbientTemperature !== void 0) {
       void this.setState("control-status.raw_ambient_temperature", rawAmbientTemperature, true);
+      this.log.debug(`Raw ambient temperature updated to "${rawAmbientTemperature}".`);
+    } else {
+      this.log.debug("Raw ambient temperature not updated: invalid or missing API value.");
     }
     if (setTemperature !== void 0) {
       void this.setState("control-status.set_temperature", setTemperature, true);
+      this.log.debug(`Set temperature updated to "${setTemperature}".`);
+    } else {
+      this.log.debug("Set temperature not updated: invalid or missing API value.");
     }
     if (switchedOn !== void 0) {
       void this.setState("control-status.switched_on", switchedOn, true);
+      this.log.debug(`Switched on updated to "${switchedOn}".`);
+    } else {
+      this.log.debug("Switched on not updated: invalid or missing API value.");
     }
-    this.log.debug("Control status updated.");
+    this.log.debug("Control status response processed.");
   }
   /**
    * Read basic heater status.
@@ -357,20 +389,35 @@ class Millheater extends utils.Adapter {
     if (name !== void 0) {
       this.heaterName = name;
       void this.setState("status.name", name, true);
+      this.log.debug(`Name set to "${name}".`);
+    } else {
+      this.log.debug("Name not updated: invalid or missing API value.");
     }
     if (customName !== void 0) {
       void this.setState("status.custom_name", customName, true);
+      this.log.debug(`Custom name updated to "${customName}".`);
+    } else {
+      this.log.debug("Custom name not updated: invalid or missing API value.");
     }
     if (version !== void 0) {
       void this.setState("status.version", version, true);
+      this.log.debug(`Version updated to "${version}".`);
+    } else {
+      this.log.debug("Version not updated: invalid or missing API value.");
     }
     if (operationKey !== void 0) {
       void this.setState("status.operation_key", operationKey, true);
+      this.log.debug(`Operation updated set to "${operationKey}".`);
+    } else {
+      this.log.debug("Operation key not updated: invalid or missing API value.");
     }
     if (macAddress !== void 0) {
       void this.setState("status.mac_address", macAddress, true);
+      this.log.debug(`MAC address updated to "${macAddress}".`);
+    } else {
+      this.log.debug("MAC address not updated: invalid or missing API value.");
     }
-    this.log.debug("Status updated.");
+    this.log.debug("Status response processed.");
   }
   /**
    * Read temperature calibration offset.
@@ -386,8 +433,10 @@ class Millheater extends utils.Adapter {
     const temperatureCalibrationOffset = typeof data.value === "number" ? data.value : void 0;
     if (temperatureCalibrationOffset !== void 0) {
       void this.setState("settings.temperature_calibration_offset", temperatureCalibrationOffset, true);
+      this.log.debug(`Temperature calibration offset updated to "${temperatureCalibrationOffset}".`);
+    } else {
+      this.log.debug("Temperature calibration offset not updated: invalid or missing API value.");
     }
-    this.log.debug("Temperature calibration offset updated.");
   }
   /**
    * Read oil heater power.
@@ -403,8 +452,10 @@ class Millheater extends utils.Adapter {
     const heatingLevelPercentage = typeof data.value === "number" ? data.value : void 0;
     if (heatingLevelPercentage !== void 0) {
       void this.setState("settings.heating_level_percentage", heatingLevelPercentage, true);
+      this.log.debug(`Oil heater power updated to "${heatingLevelPercentage}".`);
+    } else {
+      this.log.debug("Oil heater power not updated: invalid or missing API value.");
     }
-    this.log.debug("Oil heater power updated.");
   }
   /**
    * Read panel heater power limitation.
@@ -417,11 +468,32 @@ class Millheater extends utils.Adapter {
     if (!data) {
       return;
     }
-    const limitedHeatingPower = typeof data.value === "number" ? data.value : void 0;
+    const limitedHeatingPower = typeof data.limited_heating_power === "number" ? data.limited_heating_power : void 0;
     if (limitedHeatingPower !== void 0) {
       void this.setState("settings.limited_heating_power", limitedHeatingPower, true);
+      this.log.debug(`Limited heating power updated to "${limitedHeatingPower}".`);
+    } else {
+      this.log.debug("Limited heating power not updated: invalid or missing API value.");
     }
-    this.log.debug("Limited heating power updated.");
+  }
+  /**
+   * Read socket heater additional mode
+   *
+   * @param skipIfBusy If API is busy, skip this request.
+   */
+  async getAdditionalMode(skipIfBusy = false) {
+    this.log.debug("getAdditionalMode started.");
+    const data = await this.callApi("/additional-socket-mode", skipIfBusy);
+    if (!data) {
+      return;
+    }
+    const additionalMode = typeof data.additional_mode === "number" && Number.isInteger(data.additional_mode) && data.additional_mode >= 0 && data.additional_mode <= 4 ? data.additional_mode : void 0;
+    if (additionalMode !== void 0) {
+      void this.setState("settings.additional_mode", additionalMode, true);
+      this.log.debug(`Additional mode updated to "${additionalMode}".`);
+    } else {
+      this.log.debug("Additional mode not updated: invalid or missing API value.");
+    }
   }
   /**
    * @param value the Operation mode of the heater.
@@ -511,6 +583,29 @@ class Millheater extends utils.Adapter {
     await this.updateFastData();
   }
   /**
+   * The API accepts the additional mode as a number.
+   *
+   * @param value additional mode (0-4) that the socket heater may use.
+   */
+  async setAdditionalMode(value) {
+    if (!this.heaterName.toLowerCase().includes("socket")) {
+      this.log.warn("Additional mode can only be set for socket heaters.");
+      return;
+    }
+    if (!Number.isInteger(value) || value < 0 || value > 4) {
+      this.log.warn(`Invalid additional mode: ${value}. Allowed values are 0 to 4.`);
+      return;
+    }
+    const data = await this.callApi("/additional-socket-mode", false, "POST", { additional_mode: value });
+    if (!data) {
+      this.log.error(`Failed to set additional mode to ${value}.`);
+      return;
+    }
+    void this.setState("settings.additional_mode", value, true);
+    this.log.debug(`Additional mode set to ${value}.`);
+    await this.updateFastData();
+  }
+  /**
    * @param value Temperature calibration offset.
    */
   async setTemperatureCalibrationOffset(value) {
@@ -535,128 +630,6 @@ class Millheater extends utils.Adapter {
    * objects are not overwritten.
    */
   async createObjects() {
-    await this.setObjectNotExistsAsync("status", {
-      type: "channel",
-      common: {
-        name: "Status"
-      },
-      native: {}
-    });
-    await this.setObjectNotExistsAsync("status.name", {
-      type: "state",
-      common: {
-        name: {
-          en: "Device name/Model",
-          de: "Ger\xE4tename/Modell",
-          ru: "\u041D\u0430\u0437\u0432\u0430\u043D\u0438\u0435/\u043C\u043E\u0434\u0435\u043B\u044C \u0443\u0441\u0442\u0440\u043E\u0439\u0441\u0442\u0432\u0430",
-          pt: "Nome/Modelo do dispositivo",
-          nl: "Apparaatnaam/Model",
-          fr: "Nom/Mod\xE8le de l'appareil",
-          it: "Nome/Modello del dispositivo",
-          es: "Nombre/modelo del dispositivo",
-          pl: "Nazwa/model urz\u0105dzenia",
-          uk: "\u041D\u0430\u0437\u0432\u0430/\u043C\u043E\u0434\u0435\u043B\u044C \u043F\u0440\u0438\u0441\u0442\u0440\u043E\u044E",
-          "zh-cn": "\u8BBE\u5907\u540D\u79F0/\u578B\u53F7"
-        },
-        type: "string",
-        role: "info.model",
-        read: true,
-        write: false
-      },
-      native: {}
-    });
-    await this.setObjectNotExistsAsync("status.custom_name", {
-      type: "state",
-      common: {
-        name: {
-          en: "Custom name",
-          de: "Name des Ger\xE4ts",
-          ru: "\u041F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044C\u0441\u043A\u043E\u0435 \u043D\u0430\u0437\u0432\u0430\u043D\u0438\u0435",
-          pt: "Nome personalizado",
-          nl: "Aangepaste naam",
-          fr: "Nom personnalis\xE9",
-          it: "Nome personalizzato",
-          es: "Nombre personalizado",
-          pl: "Nazwa w\u0142asna",
-          uk: "\u0412\u043B\u0430\u0441\u043D\u0430 \u043D\u0430\u0437\u0432\u0430",
-          "zh-cn": "\u81EA\u5B9A\u4E49\u540D\u79F0"
-        },
-        type: "string",
-        role: "info.name",
-        read: true,
-        write: false
-      },
-      native: {}
-    });
-    await this.setObjectNotExistsAsync("status.version", {
-      type: "state",
-      common: {
-        name: {
-          en: "API/Firmware version number",
-          de: "API-/Firmwareversionsnummer",
-          ru: "\u041D\u043E\u043C\u0435\u0440 \u0432\u0435\u0440\u0441\u0438\u0438 API/\u043F\u0440\u043E\u0448\u0438\u0432\u043A\u0438",
-          pt: "N\xFAmero da vers\xE3o da API/firmware",
-          nl: "API-/firmwareversienummer",
-          fr: "Num\xE9ro de version de l\u2019API/du firmware",
-          it: "Numero di versione API/firmware",
-          es: "N\xFAmero de versi\xF3n de la API/firmware",
-          pl: "Numer wersji API/oprogramowania uk\u0142adowego",
-          uk: "\u041D\u043E\u043C\u0435\u0440 \u0432\u0435\u0440\u0441\u0456\u0457 API/\u043F\u0440\u043E\u0448\u0438\u0432\u043A\u0438",
-          "zh-cn": "API/\u56FA\u4EF6\u7248\u672C\u53F7"
-        },
-        type: "string",
-        role: "info.firmware",
-        read: true,
-        write: false
-      },
-      native: {}
-    });
-    await this.setObjectNotExistsAsync("status.operation_key", {
-      type: "state",
-      common: {
-        name: {
-          en: "If an operational problem occurs (e.g. a faulty temperature sensor), it may be reported in this field.",
-          de: "Wenn ein Betriebsproblem auftritt (z. B. ein defekter Temperatursensor), kann es in diesem Feld gemeldet werden.",
-          ru: "\u041F\u0440\u0438 \u0432\u043E\u0437\u043D\u0438\u043A\u043D\u043E\u0432\u0435\u043D\u0438\u0438 \u043F\u0440\u043E\u0431\u043B\u0435\u043C\u044B \u0432 \u0440\u0430\u0431\u043E\u0442\u0435 (\u043D\u0430\u043F\u0440\u0438\u043C\u0435\u0440, \u043D\u0435\u0438\u0441\u043F\u0440\u0430\u0432\u043D\u043E\u0441\u0442\u0438 \u0434\u0430\u0442\u0447\u0438\u043A\u0430 \u0442\u0435\u043C\u043F\u0435\u0440\u0430\u0442\u0443\u0440\u044B) \u043E\u043D\u0430 \u043C\u043E\u0436\u0435\u0442 \u043E\u0442\u043E\u0431\u0440\u0430\u0436\u0430\u0442\u044C\u0441\u044F \u0432 \u044D\u0442\u043E\u043C \u043F\u043E\u043B\u0435.",
-          pt: "Se ocorrer um problema de funcionamento (por exemplo, um sensor de temperatura avariado), ele poder\xE1 ser indicado neste campo.",
-          nl: "Als er een probleem met de werking optreedt (bijvoorbeeld een defecte temperatuursensor), kan dit in dit veld worden gemeld.",
-          fr: "En cas de probl\xE8me de fonctionnement (par exemple, un capteur de temp\xE9rature d\xE9fectueux), celui-ci peut \xEAtre signal\xE9 dans ce champ.",
-          it: "Se si verifica un problema di funzionamento (ad esempio, un sensore di temperatura guasto), pu\xF2 essere segnalato in questo campo.",
-          es: "Si se produce un problema de funcionamiento (por ejemplo, un sensor de temperatura averiado), puede indicarse en este campo.",
-          pl: "Je\u015Bli wyst\u0105pi problem z dzia\u0142aniem (np. uszkodzony czujnik temperatury), mo\u017Ce on zosta\u0107 zg\u0142oszony w tym polu.",
-          uk: "\u042F\u043A\u0449\u043E \u0432\u0438\u043D\u0438\u043A\u0430\u0454 \u043F\u0440\u043E\u0431\u043B\u0435\u043C\u0430 \u0432 \u0440\u043E\u0431\u043E\u0442\u0456 (\u043D\u0430\u043F\u0440\u0438\u043A\u043B\u0430\u0434, \u043D\u0435\u0441\u043F\u0440\u0430\u0432\u043D\u0438\u0439 \u0434\u0430\u0442\u0447\u0438\u043A \u0442\u0435\u043C\u043F\u0435\u0440\u0430\u0442\u0443\u0440\u0438), \u0457\u0457 \u043C\u043E\u0436\u043D\u0430 \u0432\u043A\u0430\u0437\u0430\u0442\u0438 \u0432 \u0446\u044C\u043E\u043C\u0443 \u043F\u043E\u043B\u0456.",
-          "zh-cn": "\u5982\u679C\u51FA\u73B0\u8FD0\u884C\u95EE\u9898\uFF08\u4F8B\u5982\u6E29\u5EA6\u4F20\u611F\u5668\u635F\u574F\uFF09\uFF0C\u53EF\u4EE5\u5728\u6B64\u5B57\u6BB5\u4E2D\u62A5\u544A\u3002"
-        },
-        type: "string",
-        role: "state",
-        read: true,
-        write: false
-      },
-      native: {}
-    });
-    await this.setObjectNotExistsAsync("status.mac_address", {
-      type: "state",
-      common: {
-        name: {
-          en: "Device MAC (Media Access Control) address",
-          de: "MAC-Adresse (Media Access Control) des Ger\xE4ts",
-          ru: "MAC-\u0430\u0434\u0440\u0435\u0441 \u0443\u0441\u0442\u0440\u043E\u0439\u0441\u0442\u0432\u0430 (Media Access Control)",
-          pt: "Endere\xE7o MAC (Media Access Control) do dispositivo",
-          nl: "MAC-adres (Media Access Control) van het apparaat",
-          fr: "Adresse MAC (Media Access Control) de l\u2019appareil",
-          it: "Indirizzo MAC (Media Access Control) del dispositivo",
-          es: "Direcci\xF3n MAC (Media Access Control) del dispositivo",
-          pl: "Adres MAC (Media Access Control) urz\u0105dzenia",
-          uk: "MAC-\u0430\u0434\u0440\u0435\u0441\u0430 \u043F\u0440\u0438\u0441\u0442\u0440\u043E\u044E (Media Access Control)",
-          "zh-cn": "\u8BBE\u5907\u7684 MAC \u5730\u5740\uFF08\u5A92\u4F53\u8BBF\u95EE\u63A7\u5236\uFF09"
-        },
-        type: "string",
-        role: "info.mac",
-        read: true,
-        write: false
-      },
-      native: {}
-    });
     await this.setObjectNotExistsAsync("control-status", {
       type: "channel",
       common: {
@@ -916,6 +889,32 @@ class Millheater extends utils.Adapter {
       },
       native: {}
     });
+    await this.setObjectNotExistsAsync("settings.additional_mode", {
+      type: "state",
+      common: {
+        name: {
+          en: "Additional socket mode",
+          de: "Zus\xE4tzlicher Steckdosenmodus",
+          ru: "\u0414\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u0435\u043B\u044C\u043D\u044B\u0439 \u0440\u0435\u0436\u0438\u043C \u0440\u043E\u0437\u0435\u0442\u043A\u0438",
+          pt: "Modo adicional da tomada",
+          nl: "Extra stopcontactmodus",
+          fr: "Mode suppl\xE9mentaire de la prise",
+          it: "Modalit\xE0 aggiuntiva della presa",
+          es: "Modo adicional del enchufe",
+          pl: "Dodatkowy tryb gniazda",
+          uk: "\u0414\u043E\u0434\u0430\u0442\u043A\u043E\u0432\u0438\u0439 \u0440\u0435\u0436\u0438\u043C \u0440\u043E\u0437\u0435\u0442\u043A\u0438",
+          "zh-cn": "\u9644\u52A0\u63D2\u5EA7\u6A21\u5F0F"
+        },
+        type: "number",
+        role: "state",
+        read: true,
+        write: true,
+        min: 0,
+        max: 4,
+        step: 1
+      },
+      native: {}
+    });
     await this.setObjectNotExistsAsync("settings.heating_level_percentage", {
       type: "state",
       common: {
@@ -997,6 +996,128 @@ class Millheater extends utils.Adapter {
       },
       native: {}
     });
+    await this.setObjectNotExistsAsync("status", {
+      type: "channel",
+      common: {
+        name: "Status"
+      },
+      native: {}
+    });
+    await this.setObjectNotExistsAsync("status.custom_name", {
+      type: "state",
+      common: {
+        name: {
+          en: "Custom name",
+          de: "Name des Ger\xE4ts",
+          ru: "\u041F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044C\u0441\u043A\u043E\u0435 \u043D\u0430\u0437\u0432\u0430\u043D\u0438\u0435",
+          pt: "Nome personalizado",
+          nl: "Aangepaste naam",
+          fr: "Nom personnalis\xE9",
+          it: "Nome personalizzato",
+          es: "Nombre personalizado",
+          pl: "Nazwa w\u0142asna",
+          uk: "\u0412\u043B\u0430\u0441\u043D\u0430 \u043D\u0430\u0437\u0432\u0430",
+          "zh-cn": "\u81EA\u5B9A\u4E49\u540D\u79F0"
+        },
+        type: "string",
+        role: "info.name",
+        read: true,
+        write: false
+      },
+      native: {}
+    });
+    await this.setObjectNotExistsAsync("status.mac_address", {
+      type: "state",
+      common: {
+        name: {
+          en: "Device MAC (Media Access Control) address",
+          de: "MAC-Adresse (Media Access Control) des Ger\xE4ts",
+          ru: "MAC-\u0430\u0434\u0440\u0435\u0441 \u0443\u0441\u0442\u0440\u043E\u0439\u0441\u0442\u0432\u0430 (Media Access Control)",
+          pt: "Endere\xE7o MAC (Media Access Control) do dispositivo",
+          nl: "MAC-adres (Media Access Control) van het apparaat",
+          fr: "Adresse MAC (Media Access Control) de l\u2019appareil",
+          it: "Indirizzo MAC (Media Access Control) del dispositivo",
+          es: "Direcci\xF3n MAC (Media Access Control) del dispositivo",
+          pl: "Adres MAC (Media Access Control) urz\u0105dzenia",
+          uk: "MAC-\u0430\u0434\u0440\u0435\u0441\u0430 \u043F\u0440\u0438\u0441\u0442\u0440\u043E\u044E (Media Access Control)",
+          "zh-cn": "\u8BBE\u5907\u7684 MAC \u5730\u5740\uFF08\u5A92\u4F53\u8BBF\u95EE\u63A7\u5236\uFF09"
+        },
+        type: "string",
+        role: "info.mac",
+        read: true,
+        write: false
+      },
+      native: {}
+    });
+    await this.setObjectNotExistsAsync("status.name", {
+      type: "state",
+      common: {
+        name: {
+          en: "Device name/Model",
+          de: "Ger\xE4tename/Modell",
+          ru: "\u041D\u0430\u0437\u0432\u0430\u043D\u0438\u0435/\u043C\u043E\u0434\u0435\u043B\u044C \u0443\u0441\u0442\u0440\u043E\u0439\u0441\u0442\u0432\u0430",
+          pt: "Nome/Modelo do dispositivo",
+          nl: "Apparaatnaam/Model",
+          fr: "Nom/Mod\xE8le de l'appareil",
+          it: "Nome/Modello del dispositivo",
+          es: "Nombre/modelo del dispositivo",
+          pl: "Nazwa/model urz\u0105dzenia",
+          uk: "\u041D\u0430\u0437\u0432\u0430/\u043C\u043E\u0434\u0435\u043B\u044C \u043F\u0440\u0438\u0441\u0442\u0440\u043E\u044E",
+          "zh-cn": "\u8BBE\u5907\u540D\u79F0/\u578B\u53F7"
+        },
+        type: "string",
+        role: "info.model",
+        read: true,
+        write: false
+      },
+      native: {}
+    });
+    await this.setObjectNotExistsAsync("status.operation_key", {
+      type: "state",
+      common: {
+        name: {
+          en: "If an operational problem occurs (e.g. a faulty temperature sensor), it may be reported in this field.",
+          de: "Wenn ein Betriebsproblem auftritt (z. B. ein defekter Temperatursensor), kann es in diesem Feld gemeldet werden.",
+          ru: "\u041F\u0440\u0438 \u0432\u043E\u0437\u043D\u0438\u043A\u043D\u043E\u0432\u0435\u043D\u0438\u0438 \u043F\u0440\u043E\u0431\u043B\u0435\u043C\u044B \u0432 \u0440\u0430\u0431\u043E\u0442\u0435 (\u043D\u0430\u043F\u0440\u0438\u043C\u0435\u0440, \u043D\u0435\u0438\u0441\u043F\u0440\u0430\u0432\u043D\u043E\u0441\u0442\u0438 \u0434\u0430\u0442\u0447\u0438\u043A\u0430 \u0442\u0435\u043C\u043F\u0435\u0440\u0430\u0442\u0443\u0440\u044B) \u043E\u043D\u0430 \u043C\u043E\u0436\u0435\u0442 \u043E\u0442\u043E\u0431\u0440\u0430\u0436\u0430\u0442\u044C\u0441\u044F \u0432 \u044D\u0442\u043E\u043C \u043F\u043E\u043B\u0435.",
+          pt: "Se ocorrer um problema de funcionamento (por exemplo, um sensor de temperatura avariado), ele poder\xE1 ser indicado neste campo.",
+          nl: "Als er een probleem met de werking optreedt (bijvoorbeeld een defecte temperatuursensor), kan dit in dit veld worden gemeld.",
+          fr: "En cas de probl\xE8me de fonctionnement (par exemple, un capteur de temp\xE9rature d\xE9fectueux), celui-ci peut \xEAtre signal\xE9 dans ce champ.",
+          it: "Se si verifica un problema di funzionamento (ad esempio, un sensore di temperatura guasto), pu\xF2 essere segnalato in questo campo.",
+          es: "Si se produce un problema de funcionamiento (por ejemplo, un sensor de temperatura averiado), puede indicarse en este campo.",
+          pl: "Je\u015Bli wyst\u0105pi problem z dzia\u0142aniem (np. uszkodzony czujnik temperatury), mo\u017Ce on zosta\u0107 zg\u0142oszony w tym polu.",
+          uk: "\u042F\u043A\u0449\u043E \u0432\u0438\u043D\u0438\u043A\u0430\u0454 \u043F\u0440\u043E\u0431\u043B\u0435\u043C\u0430 \u0432 \u0440\u043E\u0431\u043E\u0442\u0456 (\u043D\u0430\u043F\u0440\u0438\u043A\u043B\u0430\u0434, \u043D\u0435\u0441\u043F\u0440\u0430\u0432\u043D\u0438\u0439 \u0434\u0430\u0442\u0447\u0438\u043A \u0442\u0435\u043C\u043F\u0435\u0440\u0430\u0442\u0443\u0440\u0438), \u0457\u0457 \u043C\u043E\u0436\u043D\u0430 \u0432\u043A\u0430\u0437\u0430\u0442\u0438 \u0432 \u0446\u044C\u043E\u043C\u0443 \u043F\u043E\u043B\u0456.",
+          "zh-cn": "\u5982\u679C\u51FA\u73B0\u8FD0\u884C\u95EE\u9898\uFF08\u4F8B\u5982\u6E29\u5EA6\u4F20\u611F\u5668\u635F\u574F\uFF09\uFF0C\u53EF\u4EE5\u5728\u6B64\u5B57\u6BB5\u4E2D\u62A5\u544A\u3002"
+        },
+        type: "string",
+        role: "state",
+        read: true,
+        write: false
+      },
+      native: {}
+    });
+    await this.setObjectNotExistsAsync("status.version", {
+      type: "state",
+      common: {
+        name: {
+          en: "API/Firmware version number",
+          de: "API-/Firmwareversionsnummer",
+          ru: "\u041D\u043E\u043C\u0435\u0440 \u0432\u0435\u0440\u0441\u0438\u0438 API/\u043F\u0440\u043E\u0448\u0438\u0432\u043A\u0438",
+          pt: "N\xFAmero da vers\xE3o da API/firmware",
+          nl: "API-/firmwareversienummer",
+          fr: "Num\xE9ro de version de l\u2019API/du firmware",
+          it: "Numero di versione API/firmware",
+          es: "N\xFAmero de versi\xF3n de la API/firmware",
+          pl: "Numer wersji API/oprogramowania uk\u0142adowego",
+          uk: "\u041D\u043E\u043C\u0435\u0440 \u0432\u0435\u0440\u0441\u0456\u0457 API/\u043F\u0440\u043E\u0448\u0438\u0432\u043A\u0438",
+          "zh-cn": "API/\u56FA\u4EF6\u7248\u672C\u53F7"
+        },
+        type: "string",
+        role: "info.firmware",
+        read: true,
+        write: false
+      },
+      native: {}
+    });
   }
   /**
    * Handle state changes.
@@ -1021,6 +1142,13 @@ class Millheater extends utils.Adapter {
       case `${this.namespace}.control-status.set_temperature`:
         if (typeof state.val === "number") {
           void this.setTemperature(state.val);
+        } else {
+          this.log.warn(`Invalid value for ${id}: expected a number.`);
+        }
+        break;
+      case `${this.namespace}.settings.additional_mode`:
+        if (typeof state.val === "number") {
+          void this.setAdditionalMode(state.val);
         } else {
           this.log.warn(`Invalid value for ${id}: expected a number.`);
         }

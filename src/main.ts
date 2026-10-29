@@ -343,6 +343,9 @@ class Millheater extends utils.Adapter {
 		} else if (heaterName.includes("panel")) {
 			// Only available for panel and storage heater, only panel heaters are handled here.
 			await this.getLimitedHeatingPower(skipIfBusy);
+		} else if (heaterName.includes("socket")) {
+			// Only available for socket heaters.
+			await this.getAdditionalMode(skipIfBusy);
 		}
 	}
 
@@ -598,9 +601,42 @@ class Millheater extends utils.Adapter {
 
 		if (limitedHeatingPower !== undefined) {
 			void this.setState("settings.limited_heating_power", limitedHeatingPower, true);
+			this.log.debug(`Limited heating power updated to "${limitedHeatingPower}".`);
+		} else {
+			this.log.debug("Limited heating power not updated: invalid or missing API value.");
+		}
+	}
+
+	/**
+	 * Read socket heater additional mode
+	 *
+	 * @param skipIfBusy If API is busy, skip this request.
+	 */
+	private async getAdditionalMode(skipIfBusy = false): Promise<void> {
+		this.log.debug("getAdditionalMode started.");
+
+		const data = await this.callApi("/additional-socket-mode", skipIfBusy);
+
+		if (!data) {
+			return;
 		}
 
-		this.log.debug("Limited heating power updated.");
+		// Read API values and verify their expected data type and range.
+		// Only valid API values are written to the states.
+		const additionalMode =
+			typeof data.additional_mode === "number" &&
+			Number.isInteger(data.additional_mode) &&
+			data.additional_mode >= 0 &&
+			data.additional_mode <= 4
+				? data.additional_mode
+				: undefined;
+
+		if (additionalMode !== undefined) {
+			void this.setState("settings.additional_mode", additionalMode, true);
+			this.log.debug(`Additional mode updated to "${additionalMode}".`);
+		} else {
+			this.log.debug("Additional mode not updated: invalid or missing API value.");
+		}
 	}
 
 	/**
@@ -727,6 +763,39 @@ class Millheater extends utils.Adapter {
 	}
 
 	/**
+	 * The API accepts the additional mode as a number.
+	 *
+	 * @param value additional mode (0-4) that the socket heater may use.
+	 */
+	private async setAdditionalMode(value: number): Promise<void> {
+		// Additional mode is only available for socket heaters.
+		if (!this.heaterName.toLowerCase().includes("socket")) {
+			this.log.warn("Additional mode can only be set for socket heaters.");
+			return;
+		}
+
+		// Socket heaters support integer values from 0 to 4.
+		if (!Number.isInteger(value) || value < 0 || value > 4) {
+			this.log.warn(`Invalid additional mode: ${value}. Allowed values are 0 to 4.`);
+			return;
+		}
+
+		const data = await this.callApi("/additional-socket-mode", false, "POST", { additional_mode: value });
+
+		if (!data) {
+			this.log.error(`Failed to set additional mode to ${value}.`);
+			return;
+		}
+
+		// A successful API request is acknowledged immediately.
+		void this.setState("settings.additional_mode", value, true);
+		this.log.debug(`Additional mode set to ${value}.`);
+
+		// Update the fast data after changing the additional mode.
+		await this.updateFastData();
+	}
+
+	/**
 	 * @param value Temperature calibration offset.
 	 */
 	private async setTemperatureCalibrationOffset(value: number): Promise<void> {
@@ -759,140 +828,6 @@ class Millheater extends utils.Adapter {
 	 * objects are not overwritten.
 	 */
 	private async createObjects(): Promise<void> {
-		/*
-		 * ============================================================
-		 * STATUS
-		 * ============================================================
-		 */
-
-		await this.setObjectNotExistsAsync("status", {
-			type: "channel",
-			common: {
-				name: "Status",
-			},
-			native: {},
-		});
-
-		await this.setObjectNotExistsAsync("status.name", {
-			type: "state",
-			common: {
-				name: {
-					en: "Device name/Model",
-					de: "Gerätename/Modell",
-					ru: "Название/модель устройства",
-					pt: "Nome/Modelo do dispositivo",
-					nl: "Apparaatnaam/Model",
-					fr: "Nom/Modèle de l'appareil",
-					it: "Nome/Modello del dispositivo",
-					es: "Nombre/modelo del dispositivo",
-					pl: "Nazwa/model urządzenia",
-					uk: "Назва/модель пристрою",
-					"zh-cn": "设备名称/型号",
-				},
-				type: "string",
-				role: "info.model",
-				read: true,
-				write: false,
-			},
-			native: {},
-		});
-
-		await this.setObjectNotExistsAsync("status.custom_name", {
-			type: "state",
-			common: {
-				name: {
-					en: "Custom name",
-					de: "Name des Geräts",
-					ru: "Пользовательское название",
-					pt: "Nome personalizado",
-					nl: "Aangepaste naam",
-					fr: "Nom personnalisé",
-					it: "Nome personalizzato",
-					es: "Nombre personalizado",
-					pl: "Nazwa własna",
-					uk: "Власна назва",
-					"zh-cn": "自定义名称",
-				},
-				type: "string",
-				role: "info.name",
-				read: true,
-				write: false,
-			},
-			native: {},
-		});
-
-		await this.setObjectNotExistsAsync("status.version", {
-			type: "state",
-			common: {
-				name: {
-					en: "API/Firmware version number",
-					de: "API-/Firmwareversionsnummer",
-					ru: "Номер версии API/прошивки",
-					pt: "Número da versão da API/firmware",
-					nl: "API-/firmwareversienummer",
-					fr: "Numéro de version de l’API/du firmware",
-					it: "Numero di versione API/firmware",
-					es: "Número de versión de la API/firmware",
-					pl: "Numer wersji API/oprogramowania układowego",
-					uk: "Номер версії API/прошивки",
-					"zh-cn": "API/固件版本号",
-				},
-				type: "string",
-				role: "info.firmware",
-				read: true,
-				write: false,
-			},
-			native: {},
-		});
-
-		await this.setObjectNotExistsAsync("status.operation_key", {
-			type: "state",
-			common: {
-				name: {
-					en: "If an operational problem occurs (e.g. a faulty temperature sensor), it may be reported in this field.",
-					de: "Wenn ein Betriebsproblem auftritt (z. B. ein defekter Temperatursensor), kann es in diesem Feld gemeldet werden.",
-					ru: "При возникновении проблемы в работе (например, неисправности датчика температуры) она может отображаться в этом поле.",
-					pt: "Se ocorrer um problema de funcionamento (por exemplo, um sensor de temperatura avariado), ele poderá ser indicado neste campo.",
-					nl: "Als er een probleem met de werking optreedt (bijvoorbeeld een defecte temperatuursensor), kan dit in dit veld worden gemeld.",
-					fr: "En cas de problème de fonctionnement (par exemple, un capteur de température défectueux), celui-ci peut être signalé dans ce champ.",
-					it: "Se si verifica un problema di funzionamento (ad esempio, un sensore di temperatura guasto), può essere segnalato in questo campo.",
-					es: "Si se produce un problema de funcionamiento (por ejemplo, un sensor de temperatura averiado), puede indicarse en este campo.",
-					pl: "Jeśli wystąpi problem z działaniem (np. uszkodzony czujnik temperatury), może on zostać zgłoszony w tym polu.",
-					uk: "Якщо виникає проблема в роботі (наприклад, несправний датчик температури), її можна вказати в цьому полі.",
-					"zh-cn": "如果出现运行问题（例如温度传感器损坏），可以在此字段中报告。",
-				},
-				type: "string",
-				role: "state",
-				read: true,
-				write: false,
-			},
-			native: {},
-		});
-
-		await this.setObjectNotExistsAsync("status.mac_address", {
-			type: "state",
-			common: {
-				name: {
-					en: "Device MAC (Media Access Control) address",
-					de: "MAC-Adresse (Media Access Control) des Geräts",
-					ru: "MAC-адрес устройства (Media Access Control)",
-					pt: "Endereço MAC (Media Access Control) do dispositivo",
-					nl: "MAC-adres (Media Access Control) van het apparaat",
-					fr: "Adresse MAC (Media Access Control) de l’appareil",
-					it: "Indirizzo MAC (Media Access Control) del dispositivo",
-					es: "Dirección MAC (Media Access Control) del dispositivo",
-					pl: "Adres MAC (Media Access Control) urządzenia",
-					uk: "MAC-адреса пристрою (Media Access Control)",
-					"zh-cn": "设备的 MAC 地址（媒体访问控制）",
-				},
-				type: "string",
-				role: "info.mac",
-				read: true,
-				write: false,
-			},
-			native: {},
-		});
-
 		/*
 		 * ============================================================
 		 * CONTROL STATUS
@@ -1176,6 +1111,33 @@ class Millheater extends utils.Adapter {
 			native: {},
 		});
 
+		await this.setObjectNotExistsAsync("settings.additional_mode", {
+			type: "state",
+			common: {
+				name: {
+					en: "Additional socket mode",
+					de: "Zusätzlicher Steckdosenmodus",
+					ru: "Дополнительный режим розетки",
+					pt: "Modo adicional da tomada",
+					nl: "Extra stopcontactmodus",
+					fr: "Mode supplémentaire de la prise",
+					it: "Modalità aggiuntiva della presa",
+					es: "Modo adicional del enchufe",
+					pl: "Dodatkowy tryb gniazda",
+					uk: "Додатковий режим розетки",
+					"zh-cn": "附加插座模式",
+				},
+				type: "number",
+				role: "state",
+				read: true,
+				write: true,
+				min: 0,
+				max: 4,
+				step: 1,
+			},
+			native: {},
+		});
+
 		await this.setObjectNotExistsAsync("settings.heating_level_percentage", {
 			type: "state",
 			common: {
@@ -1259,6 +1221,140 @@ class Millheater extends utils.Adapter {
 			},
 			native: {},
 		});
+
+		/*
+		 * ============================================================
+		 * STATUS
+		 * ============================================================
+		 */
+
+		await this.setObjectNotExistsAsync("status", {
+			type: "channel",
+			common: {
+				name: "Status",
+			},
+			native: {},
+		});
+
+		await this.setObjectNotExistsAsync("status.custom_name", {
+			type: "state",
+			common: {
+				name: {
+					en: "Custom name",
+					de: "Name des Geräts",
+					ru: "Пользовательское название",
+					pt: "Nome personalizado",
+					nl: "Aangepaste naam",
+					fr: "Nom personnalisé",
+					it: "Nome personalizzato",
+					es: "Nombre personalizado",
+					pl: "Nazwa własna",
+					uk: "Власна назва",
+					"zh-cn": "自定义名称",
+				},
+				type: "string",
+				role: "info.name",
+				read: true,
+				write: false,
+			},
+			native: {},
+		});
+
+		await this.setObjectNotExistsAsync("status.mac_address", {
+			type: "state",
+			common: {
+				name: {
+					en: "Device MAC (Media Access Control) address",
+					de: "MAC-Adresse (Media Access Control) des Geräts",
+					ru: "MAC-адрес устройства (Media Access Control)",
+					pt: "Endereço MAC (Media Access Control) do dispositivo",
+					nl: "MAC-adres (Media Access Control) van het apparaat",
+					fr: "Adresse MAC (Media Access Control) de l’appareil",
+					it: "Indirizzo MAC (Media Access Control) del dispositivo",
+					es: "Dirección MAC (Media Access Control) del dispositivo",
+					pl: "Adres MAC (Media Access Control) urządzenia",
+					uk: "MAC-адреса пристрою (Media Access Control)",
+					"zh-cn": "设备的 MAC 地址（媒体访问控制）",
+				},
+				type: "string",
+				role: "info.mac",
+				read: true,
+				write: false,
+			},
+			native: {},
+		});
+
+		await this.setObjectNotExistsAsync("status.name", {
+			type: "state",
+			common: {
+				name: {
+					en: "Device name/Model",
+					de: "Gerätename/Modell",
+					ru: "Название/модель устройства",
+					pt: "Nome/Modelo do dispositivo",
+					nl: "Apparaatnaam/Model",
+					fr: "Nom/Modèle de l'appareil",
+					it: "Nome/Modello del dispositivo",
+					es: "Nombre/modelo del dispositivo",
+					pl: "Nazwa/model urządzenia",
+					uk: "Назва/модель пристрою",
+					"zh-cn": "设备名称/型号",
+				},
+				type: "string",
+				role: "info.model",
+				read: true,
+				write: false,
+			},
+			native: {},
+		});
+
+		await this.setObjectNotExistsAsync("status.operation_key", {
+			type: "state",
+			common: {
+				name: {
+					en: "If an operational problem occurs (e.g. a faulty temperature sensor), it may be reported in this field.",
+					de: "Wenn ein Betriebsproblem auftritt (z. B. ein defekter Temperatursensor), kann es in diesem Feld gemeldet werden.",
+					ru: "При возникновении проблемы в работе (например, неисправности датчика температуры) она может отображаться в этом поле.",
+					pt: "Se ocorrer um problema de funcionamento (por exemplo, um sensor de temperatura avariado), ele poderá ser indicado neste campo.",
+					nl: "Als er een probleem met de werking optreedt (bijvoorbeeld een defecte temperatuursensor), kan dit in dit veld worden gemeld.",
+					fr: "En cas de problème de fonctionnement (par exemple, un capteur de température défectueux), celui-ci peut être signalé dans ce champ.",
+					it: "Se si verifica un problema di funzionamento (ad esempio, un sensore di temperatura guasto), può essere segnalato in questo campo.",
+					es: "Si se produce un problema de funcionamiento (por ejemplo, un sensor de temperatura averiado), puede indicarse en este campo.",
+					pl: "Jeśli wystąpi problem z działaniem (np. uszkodzony czujnik temperatury), może on zostać zgłoszony w tym polu.",
+					uk: "Якщо виникає проблема в роботі (наприклад, несправний датчик температури), її можна вказати в цьому полі.",
+					"zh-cn": "如果出现运行问题（例如温度传感器损坏），可以在此字段中报告。",
+				},
+				type: "string",
+				role: "state",
+				read: true,
+				write: false,
+			},
+			native: {},
+		});
+
+		await this.setObjectNotExistsAsync("status.version", {
+			type: "state",
+			common: {
+				name: {
+					en: "API/Firmware version number",
+					de: "API-/Firmwareversionsnummer",
+					ru: "Номер версии API/прошивки",
+					pt: "Número da versão da API/firmware",
+					nl: "API-/firmwareversienummer",
+					fr: "Numéro de version de l’API/du firmware",
+					it: "Numero di versione API/firmware",
+					es: "Número de versión de la API/firmware",
+					pl: "Numer wersji API/oprogramowania układowego",
+					uk: "Номер версії API/прошивки",
+					"zh-cn": "API/固件版本号",
+				},
+				type: "string",
+				role: "info.firmware",
+				read: true,
+				write: false,
+			},
+			native: {},
+		});
 	}
 
 	/**
@@ -1287,6 +1383,14 @@ class Millheater extends utils.Adapter {
 			case `${this.namespace}.control-status.set_temperature`:
 				if (typeof state.val === "number") {
 					void this.setTemperature(state.val);
+				} else {
+					this.log.warn(`Invalid value for ${id}: expected a number.`);
+				}
+				break;
+
+			case `${this.namespace}.settings.additional_mode`:
+				if (typeof state.val === "number") {
+					void this.setAdditionalMode(state.val);
 				} else {
 					this.log.warn(`Invalid value for ${id}: expected a number.`);
 				}
