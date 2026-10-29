@@ -2265,5 +2265,243 @@ tests.integration(path.join(__dirname, ".."), {
                 );
             },
         );
+         /**
+         * Test 10:
+         * Verify all socket-heater-specific operations.
+         */
+        suite(
+            "10 - Socket Heater",
+            getHarness => {
+                let server;
+                let mock;
+                let deviceAdditionalMode = 3;
+
+                before(async function () {
+                    this.timeout(10000);
+
+                    logSuiteStart("10 - Socket Heater");
+
+                    const harness = getHarness();
+                    mock = createTrackedServer(request => {
+                        switch (request.path) {
+                            case "/status":
+                                return createStatusResponse(
+                                    "Mill HeaterGen3Socket",
+                                    "Socket Test Heater",
+                                );
+
+                            case "/temperature-calibration-offset":
+                                return createCalibrationResponse(2);
+
+                            case "/control-status":
+                                return createControlStatusResponse();
+
+                            case "/additional-socket-mode":
+                                if (request.method === "POST") {
+                                    if (isRequestBody(request.body)) {
+                                        const body = request.body;
+
+                                        if (
+                                            typeof body.additional_mode === "number"
+                                        ) {
+                                            deviceAdditionalMode =
+                                                body.additional_mode;
+                                        }
+                                    }
+
+                                    return {
+                                        body: {
+                                            status: "ok",
+                                        },
+                                    };
+                                }
+
+                                return {
+                                    body: {
+                                        status: "ok",
+                                        additional_mode: deviceAdditionalMode,
+                                    },
+                                };
+
+                            default:
+                                return {
+                                    statusCode: 404,
+                                    body: {
+                                        status: "error",
+                                    },
+                                };
+                        }
+                    });
+
+                    server = mock.server;
+                    const port = await startTestServer(server);
+
+                    await configureHarness(harness, port);
+
+                    await harness.startAdapterAndWait();
+
+                    await waitForState(
+                        harness,
+                        "millheater.0.status.name",
+                        state => state.val === "Mill HeaterGen3Socket",
+                    );
+
+                    await waitForState(
+                        harness,
+                        "millheater.0.settings.additional_mode",
+                        state =>
+                            state.val === 3 &&
+                            state.ack === true,
+                    );
+                });
+
+                after(async () => {
+                    if (server) {
+                        await closeTestServer(server);
+                    }
+                });
+
+                it(
+                    "reads and writes additional socket mode",
+                    async function () {
+                        this.timeout(20000);
+
+                        logTestStart(
+                            "reads and writes additional socket mode",
+                        );
+
+                        const harness = getHarness();
+
+                        assert.ok(
+                            server,
+                            "Test server was not initialized",
+                        );
+
+                        /*
+                         * Verify that the socket-specific endpoint is read
+                         * and that oil/panel endpoints are not called.
+                         */
+                        assert.ok(
+                            mock.countRequests(
+                                "GET",
+                                "/additional-socket-mode",
+                            ) > 0,
+                            "Socket heater must read additional-socket-mode",
+                        );
+
+                        assert.strictEqual(
+                            mock.countRequests(
+                                "GET",
+                                "/oil-heater-power",
+                            ),
+                            0,
+                            "Socket heater must not read oil-heater-power",
+                        );
+
+                        assert.strictEqual(
+                            mock.countRequests(
+                                "GET",
+                                "/limited-heating-power",
+                            ),
+                            0,
+                            "Socket heater must not read limited-heating-power",
+                        );
+
+                        /*
+                         * Verify valid additional modes and the POST body.
+                         */
+                        for (const value of [0, 2, 4]) {
+                            const requestPromise =
+                                mock.waitForRequest(
+                                    "POST",
+                                    "/additional-socket-mode",
+                                    mock.requests.length,
+                                );
+
+                            await harness.states.setStateAsync(
+                                "millheater.0.settings.additional_mode",
+                                {
+                                    val: value,
+                                    ack: false,
+                                },
+                            );
+
+                            const request = await requestPromise;
+
+                            const body =
+                                /** @type {Record<string, unknown>} */ (
+                                    request.body
+                                );
+
+                            assert.deepStrictEqual(
+                                body,
+                                {
+                                    additional_mode: value,
+                                },
+                            );
+
+                            await waitForState(
+                                harness,
+                                "millheater.0.settings.additional_mode",
+                                state =>
+                                    state.val === value &&
+                                    state.ack === true,
+                            );
+                        }
+
+                        /*
+                         * Invalid values must not be sent to the API.
+                         */
+                        for (const value of [-1, 5, 2.5]) {
+                            await mock.assertNoRequestAfter(
+                                async () => {
+                                    await harness.states.setStateAsync(
+                                        "millheater.0.settings.additional_mode",
+                                        {
+                                            val: value,
+                                            ack: false,
+                                        },
+                                    );
+                                },
+                                "POST",
+                                "/additional-socket-mode",
+                            );
+                        }
+
+                        /*
+                         * Socket heaters must not use oil/panel-specific
+                         * write endpoints.
+                         */
+                        await mock.assertNoRequestAfter(
+                            async () => {
+                                await harness.states.setStateAsync(
+                                    "millheater.0.settings.heating_level_percentage",
+                                    {
+                                        val: 60,
+                                        ack: false,
+                                    },
+                                );
+                            },
+                            "POST",
+                            "/oil-heater-power",
+                        );
+
+                        await mock.assertNoRequestAfter(
+                            async () => {
+                                await harness.states.setStateAsync(
+                                    "millheater.0.settings.limited_heating_power",
+                                    {
+                                        val: 80,
+                                        ack: false,
+                                    },
+                                );
+                            },
+                            "POST",
+                            "/limited-heating-power",
+                        );
+                    },
+                );
+            },
+        );
     },
 });
