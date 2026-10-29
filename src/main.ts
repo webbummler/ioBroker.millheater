@@ -546,7 +546,8 @@ class Millheater extends utils.Adapter {
 
 		// Read API values and verify their expected data types.
 		// Only valid API values are written to the states.
-		const limitedHeatingPower = typeof data.value === "number" ? data.value : undefined;
+		const limitedHeatingPower =
+			typeof data.limited_heating_power === "number" ? data.limited_heating_power : undefined;
 
 		if (limitedHeatingPower !== undefined) {
 			void this.setState("settings.limited_heating_power", limitedHeatingPower, true);
