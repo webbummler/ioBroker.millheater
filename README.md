@@ -365,6 +365,11 @@ For state objects, the adapter uses the official ioBroker state roles.
 
 ## Changelog
 
+### 0.1.10
+
+* Added support for socket and convection heaters.
+* Fixed reading of the limited heating power for panel heaters.
+
 ### 0.1.9
 
 * Added multilingual translations for state names in all supported languages to improve readability and satisfy ioBroker object validation requirements.
