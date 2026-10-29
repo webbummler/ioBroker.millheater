@@ -20,12 +20,7 @@ This makes it possible, for example, to use available PV surplus power for heati
 
 The adapter communicates directly with the heater over the local network. No cloud connection is required for the communication between ioBroker and the heater.
 
-The adapter currently supports:
-
-* Oil heaters
-* Panel heaters
-
-Storage heaters are currently not supported.
+The adapter currently supports Millheat heater generation 3.
 
 ## Features
 
@@ -84,10 +79,10 @@ For reliable communication, use a static IP address, a DHCP reservation, or a ho
 
 The adapter currently supports:
 
-* **Oil heaters**
-* **Panel heaters**
-
-**Storage heaters are currently not supported.**
+**Convection heaters** 
+**Oil heaters**
+**Panel heaters**
+**Wi-Fi Socket**
 
 The adapter determines the heater type from the name reported by the Mill API.
 
