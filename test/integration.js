@@ -1351,9 +1351,12 @@ tests.integration(path.join(__dirname, ".."), {
                                         };
                                     }
 
-                                    return createCalibrationResponse(
-                                        deviceLimitedHeatingPower,
-                                    );
+                                    return {
+                                        body: {
+                                            status: "ok",
+                                            limited_heating_power: deviceLimitedHeatingPower,
+                                        },
+                                    };
 
                                 case "/oil-heater-power":
                                     return createCalibrationResponse(
