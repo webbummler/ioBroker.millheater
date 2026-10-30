@@ -34,6 +34,7 @@ The adapter currently supports Millheat heater generation 3.
 * Reading and changing the operating mode
 * Reading and changing temperature calibration
 * Reading and changing heater-specific power settings
+* Reading and changing the additional mode for Wi-Fi socket heaters
 * Connection status via `info.connection`
 * Centralized API request handling with mutual exclusion
 * Skippable GET polling requests when the API is busy
@@ -116,6 +117,16 @@ The value can only be written for panel heaters. Invalid values are rejected by 
 
 This setting can also be used by external automation to adapt the available heating power to the current energy situation.
 
+### Wi-Fi Socket
+
+Wi-Fi sockets support the following additional setting:
+
+`settings.additional_mode`
+
+The additional socket mode accepts integer values from `0` to `4`.
+
+The value can only be read and written for Wi-Fi socket devices. Invalid values are rejected by the adapter.
+
 ## Operating modes
 
 The `operation_mode` state supports the following values:
@@ -187,6 +198,7 @@ millheater.0
 │   └── switched_on
 │
 └── settings
+    ├── additional_mode
     ├── heating_level_percentage
     ├── limited_heating_power
     └── temperature_calibration_offset
@@ -227,6 +239,7 @@ millheater.0
 
 | State                            | Description                             | Unit | Read | Write |
 | -------------------------------- | --------------------------------------- | ---- | :--: | :---: |
+| `additional_mode`                | Additional mode for socket heaters      |      |   ✓  |   ✓   |
 | `heating_level_percentage`       | Heating level for oil heaters           | %    |   ✓  |   ✓   |
 | `limited_heating_power`          | Maximum heating power for panel heaters | %    |   ✓  |   ✓   |
 | `temperature_calibration_offset` | Temperature calibration offset          | °C   |   ✓  |   ✓   |
@@ -241,15 +254,16 @@ The local API used by this adapter is documented by Mill International AS in the
 
 [Generation 3 REST API documentation](https://github.com/Mill-International-AS/Generation_3_REST_API).
 
-The following API endpoints are used by the adapter:
+The following API endpoints are used by the adapter
 
-* `/status`
+* `/additional-socket-mode`
 * `/control-status`
-* `/set-temperature`
-* `/operation-mode`
-* `/temperature-calibration-offset`
-* `/oil-heater-power`
 * `/limited-heating-power`
+* `/oil-heater-power`
+* `/operation-mode`
+* `/set-temperature`
+* `/status`
+* `/temperature-calibration-offset`
 
 The exact availability of individual functions depends on the heater type.
 
@@ -306,10 +320,11 @@ The adapter validates the value before sending it to the heater.
 
 The following values are validated by the adapter:
 
-* Operation mode must be one of the supported modes.
-* Target temperature must be between `5 °C` and `35 °C`.
 * Oil heater power must be `40 %`, `60 %` or `100 %`.
+* Operation mode must be one of the supported modes.
 * Panel heater power limitation must be an integer from `10 %` to `100 %`.
+* Socket heater additional mode must be between `0` and `4`.
+* Target temperature must be between `5 °C` and `35 °C`.
 * Temperature calibration offset must be between `-30 °C` and `+30 °C`.
 
 Heater-specific settings can only be written when the detected heater type supports them.
