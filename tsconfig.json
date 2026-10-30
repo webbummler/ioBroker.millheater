@@ -12,7 +12,8 @@
 		"checkJs": true,
 		"types": [
 			"node",
-			"mocha"
+			"mocha",
+			"@iobroker/types"
 		],
 		"noEmitOnError": true,
 		"outDir": "./build/",
