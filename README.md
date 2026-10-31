@@ -29,6 +29,7 @@ The adapter currently supports Millheat heater generation 3.
 * Configurable HTTP request timeout
 * Separate fast and slow polling intervals
 * Automatic detection of the heater type
+* Automatic detection of heater replacement using the MAC address
 * Reading current temperature and heating power
 * Reading and changing the target temperature
 * Reading and changing the operating mode
@@ -380,6 +381,11 @@ For state objects, the adapter uses the official ioBroker state roles.
 
 ## Changelog
 
+### 0.1.11
+
+* Added automatic detection of heater replacement using the MAC address. Device state values are reset while state objects and the connection status are preserved.
+* Dependencies have been updated.
+
 ### 0.1.10
 
 * Added support for socket and convection heaters.
@@ -393,19 +399,6 @@ For state objects, the adapter uses the official ioBroker state roles.
 
 * Added maximum values for polling intervals to prevent excessively long intervals. The fast polling interval is limited to a maximum of 1 hour, while the slow polling interval is limited to a maximum of 24 hours.
 * Added hostname configuration and made various editorial improvements.
-
-### 0.1.7
-
-* Simplified validation of the configured IPv4 address.
-* Made editorial improvements to the documentation and configuration text.
-
-### 0.1.5
-
-* Applied RepoChecker recommendations and made npm-related adjustments.
-
-### 0.1.4
-
-* Updated TypeScript to version 6.
 
 [Older changelogs can be found there](CHANGELOG_OLD.md)
 

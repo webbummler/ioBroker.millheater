@@ -1,8 +1,21 @@
 {
 	"common": {
 		"name": "millheater",
-		"version": "0.1.10",
+		"version": "0.1.11",
 		"news": {
+			"0.1.11": {
+				"en": "Added automatic heater replacement detection based on the MAC address.",
+				"de": "Automatische Erkennung des Heizungsaustauschs basierend auf der MAC-Adresse hinzugefügt.",
+				"ru": "Добавлено автоматическое определение замены нагревателя по MAC-адресу.",
+				"pt": "Adicionada detecção automática de substituição de aquecedor com base no endereço MAC.",
+				"nl": "Automatische detectie van vervanging van de verwarming toegevoegd op basis van het MAC-adres.",
+				"fr": "Ajout d'une détection automatique de remplacement du radiateur basée sur l'adresse MAC.",
+				"it": "Aggiunto rilevamento automatico della sostituzione del riscaldatore in base all'indirizzo MAC.",
+				"es": "Se agregó detección automática de reemplazo del calentador según la dirección MAC.",
+				"pl": "Dodano automatyczne wykrywanie wymiany grzałki na podstawie adresu MAC.",
+				"uk": "Додано автоматичне визначення заміни обігрівача за MAC-адресою.",
+				"zh-cn": "添加了基于MAC地址的自动加热器更换检测。"
+			},
 			"0.1.10": {
 				"en": "Added support for socket and convection heaters and fixed reading of limited heating power for panel heaters.",
 				"de": "Unterstützung für Steckdosen- und Konvektionsheizungen hinzugefügt und die Anzeige der begrenzten Heizleistung für Flächenheizungen korrigiert.",

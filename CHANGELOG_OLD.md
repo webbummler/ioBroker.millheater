@@ -1,4 +1,17 @@
 # Older changes
+### 0.1.7
+
+* Simplified validation of the configured IPv4 address.
+* Made editorial improvements to the documentation and configuration text.
+
+### 0.1.5
+
+* Applied RepoChecker recommendations and made npm-related adjustments.
+
+### 0.1.4
+
+* Updated TypeScript to version 6.
+
 ### 0.1.3
 
 * Further adjustments based on RepoChecker recommendations.
