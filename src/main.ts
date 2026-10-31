@@ -6,6 +6,17 @@ import * as utils from "@iobroker/adapter-core";
 import * as http from "node:http";
 import { E_ALREADY_LOCKED, E_CANCELED, Mutex, tryAcquire } from "async-mutex";
 
+/**
+ * Contains the validated status information returned by the Mill heater API.
+ */
+interface HeaterStatus {
+	name: string | undefined;
+	customName: string | undefined;
+	version: string | undefined;
+	operationKey: string | undefined;
+	macAddress: string | undefined;
+}
+
 class Millheater extends utils.Adapter {
 	private ipHostname = "";
 	private apiTimeout = 0;
@@ -124,8 +135,28 @@ class Millheater extends utils.Adapter {
 		this.log.info("Object structure created.");
 		this.subscribeStates("*");
 
+		// Read the previously stored MAC address before updating device data.
+		const previousMacState = await this.getStateAsync("status.mac_address");
+		const previousMac = typeof previousMacState?.val === "string" ? previousMacState.val.trim() : "";
+
 		// Read slow data first because the heater name is required to determine the type-specific fast data.
-		await this.updateSlowData();
+		const heaterStatus = await this.updateSlowData();
+
+		// Detect a changed MAC address.
+		const currentMac = heaterStatus?.macAddress ?? "";
+
+		if (previousMac && currentMac) {
+			if (previousMac.toLowerCase() !== currentMac.toLowerCase()) {
+				this.log.info(`Mill heater MAC address changed: ${previousMac} -> ${currentMac}.`);
+				await this.resetObjectStates();
+
+				// Read slow data again to restore the values after the reset.
+				await this.updateSlowData();
+			}
+		} else if (!previousMac && currentMac) {
+			this.log.debug(`Mill heater MAC address detected: ${currentMac}.`);
+		}
+
 		await this.updateFastData();
 
 		// Use the ioBroker adapter timer functions.
@@ -357,9 +388,11 @@ class Millheater extends utils.Adapter {
 	 *
 	 * @param skipIfBusy If API is busy, skip this request.
 	 */
-	private async updateSlowData(skipIfBusy = false): Promise<void> {
-		await this.getStatus(skipIfBusy);
+	private async updateSlowData(skipIfBusy = false): Promise<HeaterStatus | undefined> {
+		const status = await this.getStatus(skipIfBusy);
 		await this.getTemperatureCalibrationOffset(skipIfBusy);
+
+		return status;
 	}
 
 	/**
@@ -472,13 +505,13 @@ class Millheater extends utils.Adapter {
 	 *
 	 * @param skipIfBusy If API is busy, skip this request.
 	 */
-	private async getStatus(skipIfBusy = false): Promise<void> {
+	private async getStatus(skipIfBusy = false): Promise<HeaterStatus | undefined> {
 		this.log.debug("getStatus started.");
 
 		const data = await this.callApi("/status", skipIfBusy);
 
 		if (!data) {
-			return;
+			return undefined;
 		}
 
 		// Read API values and verify their expected data types.
@@ -487,7 +520,10 @@ class Millheater extends utils.Adapter {
 		const customName = typeof data.custom_name === "string" ? data.custom_name : undefined;
 		const version = typeof data.version === "string" ? data.version : undefined;
 		const operationKey = typeof data.operation_key === "string" ? data.operation_key : undefined;
-		const macAddress = typeof data.mac_address === "string" ? data.mac_address : undefined;
+		const macAddress =
+			typeof data.mac_address === "string" && data.mac_address.trim() !== ""
+				? data.mac_address.trim()
+				: undefined;
 
 		// Store the name for later heater type detection.
 		if (name !== undefined) {
@@ -520,13 +556,20 @@ class Millheater extends utils.Adapter {
 		}
 
 		if (macAddress !== undefined) {
-			void this.setState("status.mac_address", macAddress, true);
+			await this.setState("status.mac_address", macAddress, true);
 			this.log.debug(`MAC address updated to "${macAddress}".`);
 		} else {
 			this.log.debug("MAC address not updated: invalid or missing API value.");
 		}
 
 		this.log.debug("Status response processed.");
+		return {
+			name,
+			customName,
+			version,
+			operationKey,
+			macAddress,
+		};
 	}
 
 	/**
@@ -1355,6 +1398,31 @@ class Millheater extends utils.Adapter {
 			},
 			native: {},
 		});
+	}
+
+	/**
+	 * Reset all state values after detecting a different heater.
+	 *
+	 * State objects and their definitions are preserved.
+	 * The connection state is excluded.
+	 */
+	private async resetObjectStates(): Promise<void> {
+		this.log.info("Resetting all device states.");
+
+		const states = await this.getStatesAsync("*");
+		let resetCount = 0;
+
+		for (const id of Object.keys(states)) {
+			if (id === `${this.namespace}.info.connection`) {
+				continue;
+			}
+
+			// Reset state as an acknowledged update to avoid triggering device commands.
+			await this.setState(id, null, true);
+			resetCount++;
+		}
+
+		this.log.info(`Reset ${resetCount} device states.`);
 	}
 
 	/**

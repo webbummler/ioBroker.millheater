@@ -2503,5 +2503,375 @@ tests.integration(path.join(__dirname, ".."), {
                 );
             },
         );
+
+        /**
+         * Defines integration tests for MAC address detection and device changes.
+         *
+         * @param {string} name Test suite name.
+         * @param {string | undefined} previousMac Previously stored MAC address.
+         * @param {string | undefined} currentMac MAC address returned by the API.
+         * @param {boolean} expectedReset Whether device states must be reset.
+         */
+        const defineMacAddressSuite = (
+            name,
+            previousMac,
+            currentMac,
+            expectedReset,
+        ) => {
+            suite(name, getHarness => {
+                let server;
+                let mock;
+                let startupPromise;
+                let resetSnapshot;
+                let objectSnapshots = {};
+
+                let statusRequestCount = 0;
+                let calibrationRequestCount = 0;
+
+                before(async function () {
+                    this.timeout(15000);
+
+                    logSuiteStart(name);
+
+                    const harness = getHarness();
+
+                    // Restore the previously stored MAC address.
+                    if (previousMac !== undefined) {
+                        await harness.states.setStateAsync(
+                            "millheater.0.status.mac_address",
+                            {
+                                val: previousMac,
+                                ack: true,
+                            },
+                        );
+                    }
+
+                    const statusBody = {
+                        status: "ok",
+                        name: "generic",
+                        custom_name: "Generic Test Heater",
+                        version: "2.0.0",
+                        // operation_key is intentionally omitted.
+                    };
+
+                    if (currentMac !== undefined) {
+                        statusBody.mac_address = currentMac;
+                    }
+
+                    mock = createTrackedServer(request => {
+                        switch (request.path) {
+                            case "/status":
+                                statusRequestCount++;
+
+                                return {
+                                    body: statusBody,
+                                    delayMs:
+                                        expectedReset && statusRequestCount === 2
+                                            ? 1500
+                                            : undefined,
+                                };
+
+                            case "/temperature-calibration-offset":
+                                calibrationRequestCount++;
+
+                                return {
+                                    body: {
+                                        status: "ok",
+                                        value: 2,
+                                    },
+                                    delayMs:
+                                        calibrationRequestCount === 1
+                                            ? 1200
+                                            : undefined,
+                                };
+
+                            case "/control-status":
+                                return createControlStatusResponse();
+
+                            default:
+                                return {
+                                    statusCode: 404,
+                                    body: {
+                                        status: "error",
+                                    },
+                                };
+                        }
+                    });
+
+                    server = mock.server;
+
+                    const port = await startTestServer(server);
+                    await configureHarness(harness, port);
+
+                    // Register request waiters before starting the adapter.
+                    const firstCalibrationRequest = mock.waitForRequest(
+                        "GET",
+                        "/temperature-calibration-offset",
+                        0,
+                    );
+
+                    const secondStatusRequest = expectedReset
+                        ? mock.waitForRequest("GET", "/status", 1)
+                        : undefined;
+
+                    startupPromise = harness.startAdapterAndWait();
+
+                    // Wait until the initial status request has completed
+                    // and the calibration request is running.
+                    await firstCalibrationRequest;
+
+                    await waitForState(
+                        harness,
+                        "millheater.0.info.connection",
+                        state => state.val === true && state.ack === true,
+                    );
+
+                    const objectIds = [
+                        "millheater.0.status.mac_address",
+                        "millheater.0.status.operation_key",
+                        "millheater.0.settings.temperature_calibration_offset",
+                        "millheater.0.control-status.set_temperature",
+                        "millheater.0.info.connection",
+                    ];
+
+                    // Store the original object definitions.
+                    for (const id of objectIds) {
+                        objectSnapshots[id] =
+                            await harness.objects.getObjectAsync(id);
+
+                        assert.ok(
+                            objectSnapshots[id],
+                            `Object not found: ${id}`,
+                        );
+                    }
+
+                    // Populate existing states with values from the old device.
+                    // All writes are acknowledged and must not trigger API commands.
+                    const staleStates = {
+                        "millheater.0.status.operation_key": "old-operation",
+                        "millheater.0.settings.temperature_calibration_offset": 9,
+                        "millheater.0.control-status.set_temperature": 25,
+                    };
+
+                    for (const [id, value] of Object.entries(staleStates)) {
+                        await harness.states.setStateAsync(id, {
+                            val: value,
+                            ack: true,
+                        });
+                    }
+
+                    // Give state change notifications time to be processed.
+                    await new Promise(resolve => setTimeout(resolve, 100));
+
+                    if (expectedReset) {
+                        // The second status request starts only after the reset.
+                        // Its delayed response allows us to inspect the reset states.
+                        await secondStatusRequest;
+
+                        resetSnapshot = {};
+
+                        for (const id of Object.keys(staleStates)) {
+                            resetSnapshot[id] =
+                                await harness.states.getStateAsync(id);
+                        }
+
+                        resetSnapshot.connection =
+                            await harness.states.getStateAsync(
+                                "millheater.0.info.connection",
+                            );
+                    }
+                });
+
+                after(async () => {
+                    if (server) {
+                        await closeTestServer(server);
+                    }
+                });
+
+                it(
+                    "handles the stored and reported MAC address correctly",
+                    async function () {
+                        this.timeout(15000);
+
+                        logTestStart(name);
+
+                        const harness = getHarness();
+
+                        await startupPromise;
+
+                        // Wait until the initial slow and fast updates are completed.
+                        await waitForState(
+                            harness,
+                            "millheater.0.settings.temperature_calibration_offset",
+                            state => state.val === 2 && state.ack === true,
+                        );
+
+                        await waitForState(
+                            harness,
+                            "millheater.0.control-status.set_temperature",
+                            state => state.val === 22 && state.ack === true,
+                        );
+
+                        const operationKey =
+                            await harness.states.getStateAsync(
+                                "millheater.0.status.operation_key",
+                            );
+
+                        const calibrationOffset =
+                            await harness.states.getStateAsync(
+                                "millheater.0.settings.temperature_calibration_offset",
+                            );
+
+                        const setTemperature =
+                            await harness.states.getStateAsync(
+                                "millheater.0.control-status.set_temperature",
+                            );
+
+                        const macState =
+                            await harness.states.getStateAsync(
+                                "millheater.0.status.mac_address",
+                            );
+
+                        const connectionState =
+                            await harness.states.getStateAsync(
+                                "millheater.0.info.connection",
+                            );
+
+                        // Verify whether old state values were reset.
+                        assert.strictEqual(
+                            operationKey.val,
+                            expectedReset ? null : "old-operation",
+                            "Unexpected operation key value",
+                        );
+
+                        assert.strictEqual(
+                            operationKey.ack,
+                            true,
+                            "Operation key must be acknowledged",
+                        );
+
+                        // The calibration offset must be restored from the API.
+                        assert.strictEqual(
+                            calibrationOffset.val,
+                            2,
+                            "Temperature calibration offset was not updated",
+                        );
+
+                        assert.strictEqual(
+                            setTemperature.val,
+                            22,
+                            "Set temperature was not updated from the device",
+                        );
+
+                        // Verify the stored MAC address.
+                        assert.strictEqual(
+                            macState.val,
+                            currentMac ?? previousMac ?? null,
+                            "Unexpected stored MAC address",
+                        );
+
+                        assert.strictEqual(
+                            connectionState.val,
+                            true,
+                            "Connection state must remain true",
+                        );
+
+                        assert.strictEqual(
+                            connectionState.ack,
+                            true,
+                            "Connection state must be acknowledged",
+                        );
+
+                        // Verify that all object definitions remain unchanged.
+                        for (const [id, originalObject] of Object.entries(
+                            objectSnapshots,
+                        )) {
+                            const currentObject =
+                                await harness.objects.getObjectAsync(id);
+
+                            assert.deepStrictEqual(
+                                currentObject,
+                                originalObject,
+                                `Object definition changed: ${id}`,
+                            );
+                        }
+
+                        // A changed MAC must trigger exactly one additional slow update.
+                        assert.strictEqual(
+                            mock.countRequests("GET", "/status"),
+                            expectedReset ? 2 : 1,
+                            "Unexpected number of status requests",
+                        );
+
+                        // Acknowledged state updates must never trigger write requests.
+                        assert.strictEqual(
+                            mock.countRequests("POST", "/set-temperature"),
+                            0,
+                            "An acknowledged state update triggered an API write",
+                        );
+
+                        // Inspect the values immediately after the reset,
+                        // before the second status response is processed.
+                        if (expectedReset) {
+                            for (const id of [
+                                "millheater.0.status.operation_key",
+                                "millheater.0.settings.temperature_calibration_offset",
+                                "millheater.0.control-status.set_temperature",
+                            ]) {
+                                assert.strictEqual(
+                                    resetSnapshot[id]?.val,
+                                    null,
+                                    `State was not reset: ${id}`,
+                                );
+
+                                assert.strictEqual(
+                                    resetSnapshot[id]?.ack,
+                                    true,
+                                    `Reset state was not acknowledged: ${id}`,
+                                );
+                            }
+
+                            assert.strictEqual(
+                                resetSnapshot.connection?.val,
+                                true,
+                                "Connection state was reset unexpectedly",
+                            );
+                        }
+                    },
+                );
+            });
+        };
+
+        // First startup: no previously stored MAC address.
+        defineMacAddressSuite(
+            "11 - MAC address: first detection",
+            undefined,
+            "00:11:22:33:44:55",
+            false,
+        );
+
+        // Same MAC address: comparison must be case-insensitive.
+        defineMacAddressSuite(
+            "12 - MAC address: unchanged",
+            "00:11:22:33:44:55",
+            "00:11:22:33:44:55".toUpperCase(),
+            false,
+        );
+
+        // Different MAC address: all device states must be reset.
+        defineMacAddressSuite(
+            "13 - MAC address: device changed",
+            "00:11:22:33:44:55",
+            "AA:BB:CC:DD:EE:FF",
+            true,
+        );
+
+        // Missing MAC address: do not trigger a reset.
+        defineMacAddressSuite(
+            "14 - MAC address: missing current address",
+            "00:11:22:33:44:55",
+            undefined,
+            false,
+        );
     },
 });

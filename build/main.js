@@ -59,6 +59,7 @@ class Millheater extends utils.Adapter {
    * Adapter startup.
    */
   async onReady() {
+    var _a;
     this.log.info("Mill Heater Adapter started.");
     const host = typeof this.config.host === "string" ? this.config.host.trim() : "";
     this.ipHostname = host;
@@ -109,7 +110,19 @@ class Millheater extends utils.Adapter {
     await this.createObjects();
     this.log.info("Object structure created.");
     this.subscribeStates("*");
-    await this.updateSlowData();
+    const previousMacState = await this.getStateAsync("status.mac_address");
+    const previousMac = typeof (previousMacState == null ? void 0 : previousMacState.val) === "string" ? previousMacState.val.trim() : "";
+    const heaterStatus = await this.updateSlowData();
+    const currentMac = (_a = heaterStatus == null ? void 0 : heaterStatus.macAddress) != null ? _a : "";
+    if (previousMac && currentMac) {
+      if (previousMac.toLowerCase() !== currentMac.toLowerCase()) {
+        this.log.info(`Mill heater MAC address changed: ${previousMac} -> ${currentMac}.`);
+        await this.resetObjectStates();
+        await this.updateSlowData();
+      }
+    } else if (!previousMac && currentMac) {
+      this.log.debug(`Mill heater MAC address detected: ${currentMac}.`);
+    }
     await this.updateFastData();
     this.pollTimer1 = this.setInterval(() => {
       void this.updateFastData(true);
@@ -284,8 +297,9 @@ class Millheater extends utils.Adapter {
    * @param skipIfBusy If API is busy, skip this request.
    */
   async updateSlowData(skipIfBusy = false) {
-    await this.getStatus(skipIfBusy);
+    const status = await this.getStatus(skipIfBusy);
     await this.getTemperatureCalibrationOffset(skipIfBusy);
+    return status;
   }
   /**
    * Read current control status.
@@ -379,13 +393,13 @@ class Millheater extends utils.Adapter {
     this.log.debug("getStatus started.");
     const data = await this.callApi("/status", skipIfBusy);
     if (!data) {
-      return;
+      return void 0;
     }
     const name = typeof data.name === "string" ? data.name : void 0;
     const customName = typeof data.custom_name === "string" ? data.custom_name : void 0;
     const version = typeof data.version === "string" ? data.version : void 0;
     const operationKey = typeof data.operation_key === "string" ? data.operation_key : void 0;
-    const macAddress = typeof data.mac_address === "string" ? data.mac_address : void 0;
+    const macAddress = typeof data.mac_address === "string" && data.mac_address.trim() !== "" ? data.mac_address.trim() : void 0;
     if (name !== void 0) {
       this.heaterName = name;
       void this.setState("status.name", name, true);
@@ -412,12 +426,19 @@ class Millheater extends utils.Adapter {
       this.log.debug("Operation key not updated: invalid or missing API value.");
     }
     if (macAddress !== void 0) {
-      void this.setState("status.mac_address", macAddress, true);
+      await this.setState("status.mac_address", macAddress, true);
       this.log.debug(`MAC address updated to "${macAddress}".`);
     } else {
       this.log.debug("MAC address not updated: invalid or missing API value.");
     }
     this.log.debug("Status response processed.");
+    return {
+      name,
+      customName,
+      version,
+      operationKey,
+      macAddress
+    };
   }
   /**
    * Read temperature calibration offset.
@@ -1118,6 +1139,25 @@ class Millheater extends utils.Adapter {
       },
       native: {}
     });
+  }
+  /**
+   * Reset all state values after detecting a different heater.
+   *
+   * State objects and their definitions are preserved.
+   * The connection state is excluded.
+   */
+  async resetObjectStates() {
+    this.log.info("Resetting all device states.");
+    const states = await this.getStatesAsync("*");
+    let resetCount = 0;
+    for (const id of Object.keys(states)) {
+      if (id === `${this.namespace}.info.connection`) {
+        continue;
+      }
+      await this.setState(id, null, true);
+      resetCount++;
+    }
+    this.log.info(`Reset ${resetCount} device states.`);
   }
   /**
    * Handle state changes.
