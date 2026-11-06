@@ -38,8 +38,8 @@ class Millheater extends utils.Adapter {
   pollInterval2Max = 86400;
   heaterName = "";
   isUnloading = false;
-  pollTimer1;
-  pollTimer2;
+  updateFastDataTimer;
+  updateSlowDataTimer;
   apiMutex = new import_async_mutex.Mutex();
   constructor(options = {}) {
     super({
@@ -124,13 +124,19 @@ class Millheater extends utils.Adapter {
       this.log.debug(`Mill heater MAC address detected: ${currentMac}.`);
     }
     await this.updateFastData();
-    this.pollTimer1 = this.setInterval(() => {
-      void this.updateFastData(true);
+    this.updateFastDataTimer = this.setTimeout(() => {
+      this.updateFastDataTimer = void 0;
+      void this.updateFastData(true).catch((error) => {
+        this.log.error(`Fast update failed: ${error instanceof Error ? error.message : String(error)}`);
+      });
     }, this.pollInterval1 * 1e3);
-    this.pollTimer2 = this.setInterval(() => {
-      void this.updateSlowData(true);
+    this.updateSlowDataTimer = this.setTimeout(() => {
+      this.updateSlowDataTimer = void 0;
+      void this.updateSlowData(true).catch((error) => {
+        this.log.error(`Slow update failed: ${error instanceof Error ? error.message : String(error)}`);
+      });
     }, this.pollInterval2 * 1e3);
-    this.log.info("Polling timers started.");
+    this.log.info("Update data timers started.");
   }
   /**
    * normal api request
@@ -272,34 +278,56 @@ class Millheater extends utils.Adapter {
    * Valid API values are written to the corresponding states.
    * Invalid, missing or unavailable API values leave the existing state unchanged.
    *
-   * @param skipIfBusy If API is busy, skip this request.
+   * @param isPolling Whether this is a scheduled polling cycle.
    */
-  async updateFastData(skipIfBusy = false) {
-    if (!this.heaterName) {
-      await this.getStatus(skipIfBusy);
-    }
-    await this.getControlStatus(skipIfBusy);
-    const heaterName = this.heaterName.toLowerCase();
-    if (heaterName.includes("oil")) {
-      await this.getHeatingLevelPercentage(skipIfBusy);
-    } else if (heaterName.includes("panel")) {
-      await this.getLimitedHeatingPower(skipIfBusy);
-    } else if (heaterName.includes("socket")) {
-      await this.getAdditionalMode(skipIfBusy);
+  async updateFastData(isPolling = false) {
+    try {
+      if (!this.heaterName) {
+        await this.getStatus(isPolling);
+      }
+      await this.getControlStatus(isPolling);
+      const heaterName = this.heaterName.toLowerCase();
+      if (heaterName.includes("oil")) {
+        await this.getHeatingLevelPercentage(isPolling);
+      } else if (heaterName.includes("panel")) {
+        await this.getLimitedHeatingPower(isPolling);
+      } else if (heaterName.includes("socket")) {
+        await this.getAdditionalMode(isPolling);
+      }
+    } finally {
+      if (isPolling && !this.isUnloading) {
+        this.updateFastDataTimer = this.setTimeout(() => {
+          this.updateFastDataTimer = void 0;
+          void this.updateFastData(true).catch((error) => {
+            this.log.error(`Fast update failed: ${error instanceof Error ? error.message : String(error)}`);
+          });
+        }, this.pollInterval1 * 1e3);
+      }
     }
   }
   /**
    * Slow update cycle.
    *
    * Valid API values are written to the corresponding states.
-   * Invalid, missing or unavailable API values leave the existing state unchanged.  
+   * Invalid, missing or unavailable API values leave the existing state unchanged.
    *
-   * @param skipIfBusy If API is busy, skip this request.
+   * @param isPolling Whether this is a scheduled polling cycle.
    */
-  async updateSlowData(skipIfBusy = false) {
-    const status = await this.getStatus(skipIfBusy);
-    await this.getTemperatureCalibrationOffset(skipIfBusy);
-    return status;
+  async updateSlowData(isPolling = false) {
+    try {
+      const status = await this.getStatus(isPolling);
+      await this.getTemperatureCalibrationOffset(isPolling);
+      return status;
+    } finally {
+      if (isPolling && !this.isUnloading) {
+        this.updateSlowDataTimer = this.setTimeout(() => {
+          this.updateSlowDataTimer = void 0;
+          void this.updateSlowData(true).catch((error) => {
+            this.log.error(`Slow update failed: ${error instanceof Error ? error.message : String(error)}`);
+          });
+        }, this.pollInterval2 * 1e3);
+      }
+    }
   }
   /**
    * Read current control status.
@@ -1226,13 +1254,13 @@ class Millheater extends utils.Adapter {
     this.isUnloading = true;
     try {
       this.log.info("Mill Heater Adapter is shutting down.");
-      if (this.pollTimer1 !== void 0) {
-        this.clearInterval(this.pollTimer1);
-        this.pollTimer1 = void 0;
+      if (this.updateFastDataTimer !== void 0) {
+        this.clearTimeout(this.updateFastDataTimer);
+        this.updateFastDataTimer = void 0;
       }
-      if (this.pollTimer2 !== void 0) {
-        this.clearInterval(this.pollTimer2);
-        this.pollTimer2 = void 0;
+      if (this.updateSlowDataTimer !== void 0) {
+        this.clearTimeout(this.updateSlowDataTimer);
+        this.updateSlowDataTimer = void 0;
       }
       this.apiMutex.cancel();
       void this.apiMutex.waitForUnlock().then(() => {
