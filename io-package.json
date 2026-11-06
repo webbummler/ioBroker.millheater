@@ -1,8 +1,21 @@
 {
 	"common": {
 		"name": "millheater",
-		"version": "0.1.11",
+		"version": "0.1.12",
 		"news": {
+			"0.1.12": {
+				"en": "Improved polling scheduling.",
+				"de": "Abfrageplanung verbessert.",
+				"ru": "Улучшено планирование опросов.",
+				"pt": "Agendamento de votação aprimorado.",
+				"nl": "Verbeterde pollingplanning.",
+				"fr": "Planification améliorée des sondages.",
+				"it": "Migliorata la pianificazione dei sondaggi.",
+				"es": "Programación de votación mejorada.",
+				"pl": "Ulepszone planowanie odpytywania.",
+				"uk": "Покращене планування опитувань.",
+				"zh-cn": "改进了轮询调度。"
+			},
 			"0.1.11": {
 				"en": "Added automatic heater replacement detection based on the MAC address.",
 				"de": "Automatische Erkennung des Heizungsaustauschs basierend auf der MAC-Adresse hinzugefügt.",

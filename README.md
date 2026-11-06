@@ -271,6 +271,7 @@ The exact availability of individual functions depends on the heater type.
 ## Polling
 
 The adapter uses two independent polling intervals.
+Each polling cycle is scheduled using a one-shot timeout after the previous update cycle has completed. The configured interval therefore defines the delay after completion, not a fixed start-to-start interval. If an API update takes longer, the effective time between polling starts increases. This prevents polling cycles from accumulating when API requests are slow.
 
 ### Startup
 
@@ -381,6 +382,13 @@ For state objects, the adapter uses the official ioBroker state roles.
 
 ## Changelog
 
+### 0.1.12
+
+* Replaced interval-based polling with timeout-based scheduling.
+* Renamed polling timer properties to match their corresponding update methods.
+* Pin ESLint to version 9 to avoid dependency conflicts with eslint-plugin-import.
+* Dependencies have been updated.
+
 ### 0.1.11
 
 * Added automatic detection of heater replacement using the MAC address. Device state values are reset while state objects and the connection status are preserved.
@@ -390,15 +398,6 @@ For state objects, the adapter uses the official ioBroker state roles.
 
 * Added support for socket and convection heaters.
 * Fixed reading of the limited heating power for panel heaters.
-
-### 0.1.9
-
-* Added multilingual translations for state names in all supported languages to improve readability and satisfy ioBroker object validation requirements.
-
-### 0.1.8
-
-* Added maximum values for polling intervals to prevent excessively long intervals. The fast polling interval is limited to a maximum of 1 hour, while the slow polling interval is limited to a maximum of 24 hours.
-* Added hostname configuration and made various editorial improvements.
 
 [Older changelogs can be found there](CHANGELOG_OLD.md)
 
