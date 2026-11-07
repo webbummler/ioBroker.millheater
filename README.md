@@ -134,7 +134,7 @@ The `operation_mode` state supports the following values:
 
 | Value                  | Description                                                                         |
 | ---------------------- | ----------------------------------------------------------------------------------- |
-| `Off`                  | Heater switched off                                                                 |
+| `OFF`                  | Heater switched off                                                                 |
 | `Weekly program`       | Weekly schedule                                                                     |
 | `Independent device`   | Independent device operation                                                        |
 | `Control individually` | Follow the individual target temperature without using timers or the weekly program |

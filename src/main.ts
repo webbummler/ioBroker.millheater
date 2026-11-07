@@ -716,7 +716,7 @@ class Millheater extends utils.Adapter {
 	 */
 	private async setOperationMode(value: string): Promise<void> {
 		// "Invalid" is a possible API state, but must not be sent to the heater.
-		const validModes = ["Off", "Weekly program", "Independent device", "Control individually"];
+		const validModes = ["OFF", "Weekly program", "Independent device", "Control individually"];
 
 		if (!validModes.includes(value)) {
 			this.log.warn(`Invalid operation mode: "${value}".`);
@@ -1084,7 +1084,7 @@ class Millheater extends utils.Adapter {
 				read: true,
 				write: true,
 				states: {
-					Off: "Off",
+					OFF: "OFF",
 					"Weekly program": "Weekly program",
 					"Independent device": "Independent device",
 					"Control individually": "Control individually",

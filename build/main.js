@@ -548,7 +548,7 @@ class Millheater extends utils.Adapter {
    * @param value the Operation mode of the heater.
    */
   async setOperationMode(value) {
-    const validModes = ["Off", "Weekly program", "Independent device", "Control individually"];
+    const validModes = ["OFF", "Weekly program", "Independent device", "Control individually"];
     if (!validModes.includes(value)) {
       this.log.warn(`Invalid operation mode: "${value}".`);
       return;
@@ -850,7 +850,7 @@ class Millheater extends utils.Adapter {
         read: true,
         write: true,
         states: {
-          Off: "Off",
+          OFF: "OFF",
           "Weekly program": "Weekly program",
           "Independent device": "Independent device",
           "Control individually": "Control individually"

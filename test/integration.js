@@ -1173,7 +1173,7 @@ tests.integration(path.join(__dirname, ".."), {
                          * -------------------------------------------------
                          */
                         const operationModes = [
-                            "Off",
+                            "OFF",
                             "Weekly program",
                             "Independent device",
                             "Control individually",
