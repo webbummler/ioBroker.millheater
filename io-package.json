@@ -1,8 +1,21 @@
 {
 	"common": {
 		"name": "millheater",
-		"version": "0.1.12",
+		"version": "0.1.13",
 		"news": {
+			"0.1.13": {
+				"en": "Fixed OFF mode and corrected translations.",
+				"de": "OFF-Modus korrigiert und Übersetzungen korrigiert.",
+				"ru": "Исправлен режим OFF и исправлены переводы.",
+				"pt": "Modo OFF corrigido e traduções corrigidas.",
+				"nl": "Probleem met de OFF-modus opgelost en vertalingen gecorrigeerd.",
+				"fr": "Correction du mode OFF et des traductions.",
+				"it": "Corretta la modalità OFF e corrette le traduzioni.",
+				"es": "Se corrigió el modo OFF y se corrigieron las traducciones.",
+				"pl": "Naprawiono tryb OFF i poprawiono tłumaczenia.",
+				"uk": "Виправлено режим OFF та переклади.",
+				"zh-cn": "修复了关闭模式并更正了翻译。"
+			},
 			"0.1.12": {
 				"en": "Improved polling scheduling.",
 				"de": "Abfrageplanung verbessert.",
@@ -67,32 +80,6 @@
 				"pl": "Dodano maksymalne limity interwałów odpytywania i konfigurację nazwy hosta, z niewielkimi ulepszeniami redakcyjnymi.",
 				"uk": "Додано обмеження максимального інтервалу опитування та конфігурацію імені хоста з незначними редакційними покращеннями.",
 				"zh-cn": "添加了最大轮询间隔限制和主机名配置，并进行了细微的编辑改进。"
-			},
-			"0.1.7": {
-				"en": "Simplified IP address configuration validation and updated documentation.",
-				"de": "Vereinfachte Validierung der IP-Adresskonfiguration und aktualisierte Dokumentation.",
-				"ru": "Упрощенная проверка конфигурации IP-адреса и обновленная документация.",
-				"pt": "Validação simplificada de configuração de endereço IP e documentação atualizada.",
-				"nl": "Vereenvoudigde validatie van de IP-adresconfiguratie en bijgewerkte documentatie.",
-				"fr": "Validation simplifiée de la configuration de l’adresse IP et documentation mise à jour.",
-				"it": "Convalida semplificata della configurazione dell'indirizzo IP e documentazione aggiornata.",
-				"es": "Validación de configuración de dirección IP simplificada y documentación actualizada.",
-				"pl": "Uproszczona weryfikacja konfiguracji adresu IP i zaktualizowana dokumentacja.",
-				"uk": "Спрощена перевірка конфігурації IP-адреси та оновлена ​​документація.",
-				"zh-cn": "简化的 IP 地址配置验证和更新的文档。"
-			},
-			"0.1.5": {
-				"en": "Adjustments based on RepoChecker recommendations and npm requirements.",
-				"de": "Anpassungen basierend auf RepoChecker-Empfehlungen und NPM-Anforderungen.",
-				"ru": "Корректировки на основе рекомендаций RepoChecker и требований npm.",
-				"pt": "Ajustes baseados nas recomendações do RepoChecker e nos requisitos de npm.",
-				"nl": "Aanpassingen op basis van RepoChecker-aanbevelingen en NPM-vereisten.",
-				"fr": "Ajustements basés sur les recommandations de RepoChecker et les exigences npm.",
-				"it": "Aggiustamenti basati sulle raccomandazioni di RepoChecker e sui requisiti npm.",
-				"es": "Ajustes basados ​​en las recomendaciones de RepoChecker y los requisitos de npm.",
-				"pl": "Korekty oparte na zaleceniach RepoChecker i wymaganiach npm.",
-				"uk": "Коригування на основі рекомендацій RepoChecker і вимог npm.",
-				"zh-cn": "根据 RepoChecker 建议和 npm 要求进行调整。"
 			}
 		},
 		"titleLang": {

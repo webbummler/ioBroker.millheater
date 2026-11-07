@@ -382,6 +382,11 @@ For state objects, the adapter uses the official ioBroker state roles.
 
 ## Changelog
 
+### 0.1.13
+
+* Fixed handling of the `OFF` operation mode.
+* Corrected translations in several languages.
+
 ### 0.1.12
 
 * Replaced interval-based polling with timeout-based scheduling.
