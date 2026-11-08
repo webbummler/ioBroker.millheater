@@ -404,6 +404,11 @@ For state objects, the adapter uses the official ioBroker state roles.
 
 ## Changelog
 
+### 0.1.14
+
+* Improved API connection handling and connection status updates.
+* Reduced repeated log messages during connection failures and timeouts.
+
 ### 0.1.13
 
 * Fixed handling of the `OFF` operation mode.

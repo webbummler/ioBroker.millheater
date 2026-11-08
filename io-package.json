@@ -1,8 +1,21 @@
 {
 	"common": {
 		"name": "millheater",
-		"version": "0.1.13",
+		"version": "0.1.14",
 		"news": {
+			"0.1.14": {
+				"en": "Improved API connection handling and reduced repeated log messages during connection failures.",
+				"de": "API-Verbindungsbehandlung verbessert und wiederholte Logmeldungen bei Verbindungsfehlern reduziert.",
+				"ru": "Улучшена обработка API-соединения и сокращено количество повторяющихся сообщений журнала при сбоях соединения.",
+				"pt": "Melhorado o tratamento da conexão da API e reduzidas as mensagens repetidas no log durante falhas de conexão.",
+				"nl": "De verwerking van de API-verbinding verbeterd en herhaalde logmeldingen bij verbindingsproblemen verminderd.",
+				"fr": "Amélioration de la gestion de la connexion API et réduction des messages répétés dans le journal en cas d’échec de connexion.",
+				"it": "Migliorata la gestione della connessione API e ridotti i messaggi ripetuti nel log in caso di problemi di connessione.",
+				"es": "Se mejoró la gestión de la conexión de la API y se redujeron los mensajes repetidos en el registro durante los fallos de conexión.",
+				"pl": "Ulepszono obsługę połączenia API i ograniczono powtarzające się komunikaty dziennika podczas problemów z połączeniem.",
+				"uk": "Покращено обробку з’єднання API та зменшено кількість повторюваних повідомлень журналу під час збоїв з’єднання.",
+				"zh-cn": "改进了 API 连接处理，并减少了连接失败时重复出现的日志消息。"
+			},
 			"0.1.13": {
 				"en": "Fixed OFF mode and corrected translations.",
 				"de": "OFF-Modus korrigiert und Übersetzungen korrigiert.",
@@ -67,19 +80,6 @@
 				"pl": "Dodano wielojęzyczne tłumaczenia nazw stanów systemu.",
 				"uk": "Додано багатомовні переклади назв станів системи.",
 				"zh-cn": "添加了系统状态名称的多语言翻译。"
-			},
-			"0.1.8": {
-				"en": "Added maximum polling interval limits and hostname configuration, with minor editorial improvements.",
-				"de": "Maximale Grenzwerte für Abfrageintervalle und Hostnamenkonfiguration hinzugefügt, mit geringfügigen redaktionellen Verbesserungen.",
-				"ru": "Добавлены ограничения максимального интервала опроса и конфигурация имени хоста с небольшими редакционными улучшениями.",
-				"pt": "Adicionados limites máximos de intervalo de pesquisa e configuração de nome de host, com pequenas melhorias editoriais.",
-				"nl": "Maximale polling-intervallimieten en hostnaamconfiguratie toegevoegd, met kleine redactionele verbeteringen.",
-				"fr": "Ajout de limites maximales d'intervalle d'interrogation et de configuration du nom d'hôte, avec des améliorations éditoriales mineures.",
-				"it": "Aggiunti limiti massimi di intervallo di polling e configurazione del nome host, con piccoli miglioramenti editoriali.",
-				"es": "Se agregaron límites máximos de intervalo de sondeo y configuración de nombre de host, con mejoras editoriales menores.",
-				"pl": "Dodano maksymalne limity interwałów odpytywania i konfigurację nazwy hosta, z niewielkimi ulepszeniami redakcyjnymi.",
-				"uk": "Додано обмеження максимального інтервалу опитування та конфігурацію імені хоста з незначними редакційними покращеннями.",
-				"zh-cn": "添加了最大轮询间隔限制和主机名配置，并进行了细微的编辑改进。"
 			}
 		},
 		"titleLang": {

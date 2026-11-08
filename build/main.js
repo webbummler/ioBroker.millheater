@@ -306,7 +306,9 @@ class Millheater extends utils.Adapter {
     this.apiConnected = connected;
     void this.setStateChanged("info.connection", connected, true);
     if (connected) {
-      this.log.info(previousState === false ? "Mill heater connection restored." : "Mill heater connected.");
+      this.log.info(
+        previousState === false ? "Mill heater connection restored." : "HTTP connection established."
+      );
       return;
     }
     const reason = error ? `${path ? `${path}: ` : ""}${error.message}` : "Unknown error";
