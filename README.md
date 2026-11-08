@@ -54,6 +54,28 @@ The adapter currently supports Millheat heater generation 3.
 
 The adapter requires the IP address or hostname of the Mill heater.
 
+### One adapter instance per Mill device
+
+**Each `millheater` adapter instance is intended to communicate with exactly one Mill device.**
+The configured host address identifies that single device, and all polling, API requests,
+connection status and data points of the instance belong to it.
+
+If you want to integrate several Mill devices, create a separate adapter instance for each
+device and configure the IP address or hostname of the respective device in that instance.
+For example:
+
+| Instance | Configured device |
+| --- | --- |
+| `millheater.0` | Mill heater in the living room (`192.168.1.101`) |
+| `millheater.1` | Mill heater in the bedroom (`192.168.1.102`) |
+
+This separation is intentional: each device can be configured, monitored, started and stopped
+independently. A connection problem or a configuration change for one device therefore does
+not affect the other devices.
+
+The adapter does **not** manage a list of multiple independent Mill devices within one
+instance. Each instance represents one physical Mill device with its own local API endpoint.
+
 ### Configuration parameters
 
 | Parameter             | Description                                          | Default |
