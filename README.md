@@ -103,10 +103,10 @@ For reliable communication, use a static IP address, a DHCP reservation, or a ho
 
 The adapter currently supports:
 
-**Convection heaters** 
-**Oil heaters**
-**Panel heaters**
-**Wi-Fi Socket**
+* **Convection heaters** 
+* **Oil heaters**
+* **Panel heaters**
+* **Wi-Fi Socket**
 
 The adapter determines the heater type from the name reported by the Mill API.
 
