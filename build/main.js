@@ -27,6 +27,7 @@ var import_async_mutex = require("async-mutex");
 class Millheater extends utils.Adapter {
   ipHostname = "";
   apiTimeout = 0;
+  apiConnected;
   // Must match the limits in admin/jsonConfig.json
   apiTimeoutMin = 1;
   apiTimeoutMax = 60;
@@ -77,7 +78,7 @@ class Millheater extends utils.Adapter {
     if (!Number.isInteger(this.apiTimeout) || this.apiTimeout < this.apiTimeoutMin || this.apiTimeout > this.apiTimeoutMax) {
       this.log.error(`HTTP timeout must be between ${this.apiTimeoutMin} and ${this.apiTimeoutMax} seconds.`);
       this.terminate(
-        "HTTP timeout must be between ${this.apiTimeoutMin} and ${this.apiTimeoutMax} seconds.",
+        `HTTP timeout must be between ${this.apiTimeoutMin} and ${this.apiTimeoutMax} seconds.`,
         utils.EXIT_CODES.INVALID_ADAPTER_CONFIG
       );
       return;
@@ -201,6 +202,21 @@ class Millheater extends utils.Adapter {
     }
     this.log.debug(`Request: ${method} ${url}, Header: ${JSON.stringify(headers)}, Request body: ${jsonBody}`);
     return new Promise((resolve) => {
+      let settled = false;
+      const finish = (result) => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        resolve(result);
+      };
+      const handleRequestError = (error) => {
+        if (settled) {
+          return;
+        }
+        this.updateApiConnectionState(false, path, error);
+        finish(void 0);
+      };
       const request = http.request(
         url,
         {
@@ -213,28 +229,32 @@ class Millheater extends utils.Adapter {
           response.on("data", (chunk) => {
             data += chunk;
           });
+          response.on("error", handleRequestError);
           response.on("end", () => {
+            if (settled) {
+              return;
+            }
             const statusCode = response.statusCode;
             this.log.debug(`HTTP status for ${path}: ${statusCode != null ? statusCode : "undefined"}`);
-            void this.setState("info.connection", true, true);
+            this.updateApiConnectionState(true);
             if (statusCode === void 0 || statusCode < 200 || statusCode >= 300) {
               this.log.error(`Mill API request failed for ${path}: HTTP ${statusCode != null ? statusCode : "unknown"}.`);
               if (data.trim()) {
                 this.log.error(`Mill API response: ${data}`);
               }
-              resolve(void 0);
+              finish(void 0);
               return;
             }
             if (!data.trim()) {
               this.log.error(`Empty response from ${path}.`);
-              resolve(void 0);
+              finish(void 0);
               return;
             }
             try {
               const parsed = JSON.parse(data);
               if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
                 this.log.error(`Invalid API response from ${path}: response is not an object.`);
-                resolve(void 0);
+                finish(void 0);
                 return;
               }
               const dataRecord = parsed;
@@ -242,35 +262,57 @@ class Millheater extends utils.Adapter {
                 this.log.error(
                   `Mill API rejected request to ${path}: status=${String(dataRecord.status)}.`
                 );
-                resolve(void 0);
+                finish(void 0);
                 return;
               }
-              resolve(dataRecord);
+              finish(dataRecord);
             } catch (error) {
               this.log.error(
                 `Invalid JSON response from ${path}: ${error instanceof Error ? error.message : String(error)}`
               );
-              resolve(void 0);
+              finish(void 0);
             }
           });
         }
       );
-      request.on("error", (error) => {
-        this.log.error(`Error calling ${path}: ${error.message}`);
-        void this.setState("info.connection", false, true);
-        resolve(void 0);
-      });
+      request.on("error", handleRequestError);
       request.setTimeout(this.apiTimeout * 1e3, () => {
-        this.log.error(`Timeout calling ${path}.`);
-        void this.setState("info.connection", false, true);
-        request.destroy();
-        resolve(void 0);
+        request.destroy(new Error(`Timeout calling ${path}.`));
       });
       if (jsonBody !== void 0) {
         request.write(jsonBody);
       }
       request.end();
     });
+  }
+  /**
+   * Updates the API connection state and logs connection changes.
+   *
+   * Connection failures are logged once as warnings.
+   * Further failures are logged as debug messages until the connection is restored.
+   *
+   * @param connected Whether the API is reachable.
+   * @param path API endpoint.
+   * @param error Optional connection error.
+   */
+  updateApiConnectionState(connected, path, error) {
+    const previousState = this.apiConnected;
+    if (previousState === connected) {
+      if (!connected && error) {
+        this.log.debug(`Mill API request${path ? ` for ${path}` : ""} failed: ${error.message}`);
+      }
+      return;
+    }
+    this.apiConnected = connected;
+    void this.setStateChanged("info.connection", connected, true);
+    if (connected) {
+      this.log.info(previousState === false ? "Mill heater connection restored." : "Mill heater connected.");
+      return;
+    }
+    const reason = error ? `${path ? `${path}: ` : ""}${error.message}` : "Unknown error";
+    this.log.warn(
+      `${previousState === true ? "Mill heater connection lost" : "Mill heater is not reachable"}: ${reason}`
+    );
   }
   /**
    * Fast update cycle.

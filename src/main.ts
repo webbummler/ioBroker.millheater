@@ -20,6 +20,7 @@ interface HeaterStatus {
 class Millheater extends utils.Adapter {
 	private ipHostname = "";
 	private apiTimeout = 0;
+	private apiConnected: boolean | undefined;
 
 	// Must match the limits in admin/jsonConfig.json
 	private readonly apiTimeoutMin = 1;
@@ -211,6 +212,8 @@ class Millheater extends utils.Adapter {
 				return undefined;
 			}
 
+			// isUnloading can change while the asynchronous request is running.
+			/* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition */
 			if (error === E_CANCELED && this.isUnloading) {
 				this.log.debug(`Canceled API request ${method} ${path} because of shutdown.`);
 				return undefined;
@@ -260,6 +263,26 @@ class Millheater extends utils.Adapter {
 		this.log.debug(`Request: ${method} ${url}, Header: ${JSON.stringify(headers)}, Request body: ${jsonBody}`);
 
 		return new Promise(resolve => {
+			let settled = false;
+
+			const finish = (result: Record<string, unknown> | undefined): void => {
+				if (settled) {
+					return;
+				}
+
+				settled = true;
+				resolve(result);
+			};
+
+			const handleRequestError = (error: Error): void => {
+				if (settled) {
+					return;
+				}
+
+				this.updateApiConnectionState(false, path, error);
+				finish(undefined);
+			};
+
 			const request = http.request(
 				url,
 				{
@@ -275,13 +298,19 @@ class Millheater extends utils.Adapter {
 						data += chunk;
 					});
 
+					response.on("error", handleRequestError);
+
 					response.on("end", () => {
+						if (settled) {
+							return;
+						}
+
 						const statusCode = response.statusCode;
 
 						this.log.debug(`HTTP status for ${path}: ${statusCode ?? "undefined"}`);
 
 						// The heater responded, so the connection is available.
-						void this.setState("info.connection", true, true);
+						this.updateApiConnectionState(true);
 
 						// HTTP status must indicate a successful request.
 						if (statusCode === undefined || statusCode < 200 || statusCode >= 300) {
@@ -290,14 +319,14 @@ class Millheater extends utils.Adapter {
 							if (data.trim()) {
 								this.log.error(`Mill API response: ${data}`);
 							}
-							resolve(undefined);
+							finish(undefined);
 							return;
 						}
 
 						// A successful API request must return a response body.
 						if (!data.trim()) {
 							this.log.error(`Empty response from ${path}.`);
-							resolve(undefined);
+							finish(undefined);
 							return;
 						}
 
@@ -306,7 +335,7 @@ class Millheater extends utils.Adapter {
 
 							if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
 								this.log.error(`Invalid API response from ${path}: response is not an object.`);
-								resolve(undefined);
+								finish(undefined);
 								return;
 							}
 
@@ -317,34 +346,27 @@ class Millheater extends utils.Adapter {
 								this.log.error(
 									`Mill API rejected request to ${path}: status=${String(dataRecord.status)}.`,
 								);
-								resolve(undefined);
+								finish(undefined);
 								return;
 							}
 
-							resolve(dataRecord);
+							finish(dataRecord);
 						} catch (error) {
 							this.log.error(
 								`Invalid JSON response from ${path}: ${
 									error instanceof Error ? error.message : String(error)
 								}`,
 							);
-							resolve(undefined);
+							finish(undefined);
 						}
 					});
 				},
 			);
 
-			request.on("error", error => {
-				this.log.error(`Error calling ${path}: ${error.message}`);
-				void this.setState("info.connection", false, true);
-				resolve(undefined);
-			});
+			request.on("error", handleRequestError);
 
 			request.setTimeout(this.apiTimeout * 1000, () => {
-				this.log.error(`Timeout calling ${path}.`);
-				void this.setState("info.connection", false, true);
-				request.destroy();
-				resolve(undefined);
+				request.destroy(new Error(`Timeout calling ${path}.`));
 			});
 
 			if (jsonBody !== undefined) {
@@ -353,6 +375,41 @@ class Millheater extends utils.Adapter {
 
 			request.end();
 		});
+	}
+
+	/**
+	 * Updates the API connection state and logs connection changes.
+	 *
+	 * Connection failures are logged once as warnings.
+	 * Further failures are logged as debug messages until the connection is restored.
+	 *
+	 * @param connected Whether the API is reachable.
+	 * @param path API endpoint.
+	 * @param error Optional connection error.
+	 */
+	private updateApiConnectionState(connected: boolean, path?: string, error?: Error): void {
+		const previousState = this.apiConnected;
+
+		if (previousState === connected) {
+			if (!connected && error) {
+				this.log.debug(`Mill API request${path ? ` for ${path}` : ""} failed: ${error.message}`);
+			}
+			return;
+		}
+
+		this.apiConnected = connected;
+		void this.setStateChanged("info.connection", connected, true);
+
+		if (connected) {
+			this.log.info(previousState === false ? "Mill heater connection restored." : "Mill heater connected.");
+			return;
+		}
+
+		const reason = error ? `${path ? `${path}: ` : ""}${error.message}` : "Unknown error";
+
+		this.log.warn(
+			`${previousState === true ? "Mill heater connection lost" : "Mill heater is not reachable"}: ${reason}`,
+		);
 	}
 
 	/**
