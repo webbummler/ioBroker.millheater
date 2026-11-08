@@ -88,7 +88,7 @@ class Millheater extends utils.Adapter {
 		) {
 			this.log.error(`HTTP timeout must be between ${this.apiTimeoutMin} and ${this.apiTimeoutMax} seconds.`);
 			this.terminate(
-				"HTTP timeout must be between ${this.apiTimeoutMin} and ${this.apiTimeoutMax} seconds.",
+				`HTTP timeout must be between ${this.apiTimeoutMin} and ${this.apiTimeoutMax} seconds.`,
 				utils.EXIT_CODES.INVALID_ADAPTER_CONFIG,
 			);
 			return;
