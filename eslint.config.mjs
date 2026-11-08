@@ -25,6 +25,10 @@ export default [
 		// you may disable some 'jsdoc' warnings - but using jsdoc is highly recommended
 		// as this improves maintainability. jsdoc warnings will not block build process.
 		rules: {
+			"no-template-curly-in-string": "error",
+			"eqeqeq": ["error", "always", { "null": "ignore" }],
+			"@typescript-eslint/switch-exhaustiveness-check": "error",
+			"@typescript-eslint/no-unnecessary-condition": "warn",
 			// 'jsdoc/require-jsdoc': 'off',
 			// 'jsdoc/require-param': 'off',
 			// 'jsdoc/require-param-description': 'off',
