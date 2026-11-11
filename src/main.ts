@@ -201,11 +201,12 @@ class Millheater extends utils.Adapter {
 			throw new Error("The skip option is only supported for GET requests.");
 		}
 		try {
-			if (skipIfBusy) {
-				return await tryAcquire(this.apiMutex).runExclusive(() => this.performApiRequest(path, method, body));
-			}
+			const result = skipIfBusy
+				? await tryAcquire(this.apiMutex).runExclusive(() => this.performApiRequest(path, method, body))
+				: await this.apiMutex.runExclusive(() => this.performApiRequest(path, method, body));
+			this.log.debug(`API response for "${path}": ${JSON.stringify(result)}`);
 
-			return await this.apiMutex.runExclusive(() => this.performApiRequest(path, method, body));
+			return result;
 		} catch (error) {
 			if (error === E_ALREADY_LOCKED) {
 				this.log.debug(`Skipping API request ${method} ${path} because another request is already running.`);
@@ -516,71 +517,61 @@ class Millheater extends utils.Adapter {
 		const switchedOn = typeof data.switched_on === "boolean" ? data.switched_on : undefined;
 
 		if (ambientTemperature !== undefined) {
-			void this.setState("control-status.ambient_temperature", ambientTemperature, true);
-			this.log.debug(`Ambient temperature updated to "${ambientTemperature}".`);
+			void this.setStateChanged("control-status.ambient_temperature", ambientTemperature, true);
 		} else {
 			this.log.debug("Ambient temperature not updated: invalid or missing API value.");
 		}
 
 		if (connectedToCloud !== undefined) {
-			void this.setState("control-status.connected_to_cloud", connectedToCloud, true);
-			this.log.debug(`Connected to cloud updated to "${connectedToCloud}".`);
+			void this.setStateChanged("control-status.connected_to_cloud", connectedToCloud, true);
 		} else {
 			this.log.debug("Connected to cloud not updated: invalid or missing API value.");
 		}
 
 		if (controlSignal !== undefined) {
-			void this.setState("control-status.control_signal", controlSignal, true);
-			this.log.debug(`Control signal updated to "${controlSignal}".`);
+			void this.setStateChanged("control-status.control_signal", controlSignal, true);
 		} else {
 			this.log.debug("Control signal not updated: invalid or missing API value.");
 		}
 
 		if (currentPower !== undefined) {
-			void this.setState("control-status.current_power", currentPower, true);
-			this.log.debug(`Current power updated to "${currentPower}".`);
+			void this.setStateChanged("control-status.current_power", currentPower, true);
 		} else {
 			this.log.debug("Current power not updated: invalid or missing API value.");
 		}
 
 		if (lockActive !== undefined) {
-			void this.setState("control-status.lock_active", lockActive, true);
-			this.log.debug(`Lock active updated to "${lockActive}".`);
+			void this.setStateChanged("control-status.lock_active", lockActive, true);
 		} else {
 			this.log.debug("Lock active not updated: invalid or missing API value.");
 		}
 
 		if (openWindowActiveNow !== undefined) {
-			void this.setState("control-status.open_window_active_now", openWindowActiveNow, true);
-			this.log.debug(`Open window active now updated to "${openWindowActiveNow}".`);
+			void this.setStateChanged("control-status.open_window_active_now", openWindowActiveNow, true);
 		} else {
 			this.log.debug("Open window active now not updated: invalid or missing API value.");
 		}
 
 		if (operationMode !== undefined) {
-			void this.setState("control-status.operation_mode", operationMode, true);
-			this.log.debug(`Operation mode updated to "${operationMode}".`);
+			void this.setStateChanged("control-status.operation_mode", operationMode, true);
 		} else {
 			this.log.debug("Operation mode not updated: invalid or missing API value.");
 		}
 
 		if (rawAmbientTemperature !== undefined) {
-			void this.setState("control-status.raw_ambient_temperature", rawAmbientTemperature, true);
-			this.log.debug(`Raw ambient temperature updated to "${rawAmbientTemperature}".`);
+			void this.setStateChanged("control-status.raw_ambient_temperature", rawAmbientTemperature, true);
 		} else {
 			this.log.debug("Raw ambient temperature not updated: invalid or missing API value.");
 		}
 
 		if (setTemperature !== undefined) {
-			void this.setState("control-status.set_temperature", setTemperature, true);
-			this.log.debug(`Set temperature updated to "${setTemperature}".`);
+			void this.setStateChanged("control-status.set_temperature", setTemperature, true);
 		} else {
 			this.log.debug("Set temperature not updated: invalid or missing API value.");
 		}
 
 		if (switchedOn !== undefined) {
-			void this.setState("control-status.switched_on", switchedOn, true);
-			this.log.debug(`Switched on updated to "${switchedOn}".`);
+			void this.setStateChanged("control-status.switched_on", switchedOn, true);
 		} else {
 			this.log.debug("Switched on not updated: invalid or missing API value.");
 		}
@@ -616,36 +607,31 @@ class Millheater extends utils.Adapter {
 		// Store the name for later heater type detection.
 		if (name !== undefined) {
 			this.heaterName = name;
-			void this.setState("status.name", name, true);
-			this.log.debug(`Name set to "${name}".`);
+			void this.setStateChanged("status.name", name, true);
 		} else {
 			this.log.debug("Name not updated: invalid or missing API value.");
 		}
 
 		if (customName !== undefined) {
-			void this.setState("status.custom_name", customName, true);
-			this.log.debug(`Custom name updated to "${customName}".`);
+			void this.setStateChanged("status.custom_name", customName, true);
 		} else {
 			this.log.debug("Custom name not updated: invalid or missing API value.");
 		}
 
 		if (version !== undefined) {
-			void this.setState("status.version", version, true);
-			this.log.debug(`Version updated to "${version}".`);
+			void this.setStateChanged("status.version", version, true);
 		} else {
 			this.log.debug("Version not updated: invalid or missing API value.");
 		}
 
 		if (operationKey !== undefined) {
-			void this.setState("status.operation_key", operationKey, true);
-			this.log.debug(`Operation updated set to "${operationKey}".`);
+			void this.setStateChanged("status.operation_key", operationKey, true);
 		} else {
 			this.log.debug("Operation key not updated: invalid or missing API value.");
 		}
 
 		if (macAddress !== undefined) {
-			await this.setState("status.mac_address", macAddress, true);
-			this.log.debug(`MAC address updated to "${macAddress}".`);
+			void this.setStateChanged("status.mac_address", macAddress, true);
 		} else {
 			this.log.debug("MAC address not updated: invalid or missing API value.");
 		}
@@ -678,8 +664,7 @@ class Millheater extends utils.Adapter {
 		const temperatureCalibrationOffset = typeof data.value === "number" ? data.value : undefined;
 
 		if (temperatureCalibrationOffset !== undefined) {
-			void this.setState("settings.temperature_calibration_offset", temperatureCalibrationOffset, true);
-			this.log.debug(`Temperature calibration offset updated to "${temperatureCalibrationOffset}".`);
+			void this.setStateChanged("settings.temperature_calibration_offset", temperatureCalibrationOffset, true);
 		} else {
 			this.log.debug("Temperature calibration offset not updated: invalid or missing API value.");
 		}
@@ -704,8 +689,7 @@ class Millheater extends utils.Adapter {
 		const heatingLevelPercentage = typeof data.value === "number" ? data.value : undefined;
 
 		if (heatingLevelPercentage !== undefined) {
-			void this.setState("settings.heating_level_percentage", heatingLevelPercentage, true);
-			this.log.debug(`Oil heater power updated to "${heatingLevelPercentage}".`);
+			void this.setStateChanged("settings.heating_level_percentage", heatingLevelPercentage, true);
 		} else {
 			this.log.debug("Oil heater power not updated: invalid or missing API value.");
 		}
@@ -731,8 +715,7 @@ class Millheater extends utils.Adapter {
 			typeof data.limited_heating_power === "number" ? data.limited_heating_power : undefined;
 
 		if (limitedHeatingPower !== undefined) {
-			void this.setState("settings.limited_heating_power", limitedHeatingPower, true);
-			this.log.debug(`Limited heating power updated to "${limitedHeatingPower}".`);
+			void this.setStateChanged("settings.limited_heating_power", limitedHeatingPower, true);
 		} else {
 			this.log.debug("Limited heating power not updated: invalid or missing API value.");
 		}
@@ -763,8 +746,7 @@ class Millheater extends utils.Adapter {
 				: undefined;
 
 		if (additionalMode !== undefined) {
-			void this.setState("settings.additional_mode", additionalMode, true);
-			this.log.debug(`Additional mode updated to "${additionalMode}".`);
+			void this.setStateChanged("settings.additional_mode", additionalMode, true);
 		} else {
 			this.log.debug("Additional mode not updated: invalid or missing API value.");
 		}
@@ -790,8 +772,7 @@ class Millheater extends utils.Adapter {
 		}
 
 		// A successful API request is acknowledged immediately.
-		void this.setState("control-status.operation_mode", value, true);
-		this.log.debug(`Operation mode set to "${value}".`);
+		void this.setStateChanged("control-status.operation_mode", value, true);
 
 		// Update the fast data after changing the operation mode.
 		await this.updateFastData();
@@ -820,8 +801,7 @@ class Millheater extends utils.Adapter {
 		}
 
 		// A successful API request is acknowledged immediately.
-		void this.setState("control-status.set_temperature", value, true);
-		this.log.debug(`Temperature set to ${value} °C.`);
+		void this.setStateChanged("control-status.set_temperature", value, true);
 
 		// Update the fast data after changing the target temperature.
 		await this.updateFastData();
@@ -853,8 +833,7 @@ class Millheater extends utils.Adapter {
 		}
 
 		// A successful API request is acknowledged immediately.
-		void this.setState("settings.heating_level_percentage", value, true);
-		this.log.debug(`Heating level percentage set to ${value}%.`);
+		void this.setStateChanged("settings.heating_level_percentage", value, true);
 
 		// Update the fast data after changing the heating level.
 		await this.updateFastData();
@@ -886,8 +865,7 @@ class Millheater extends utils.Adapter {
 		}
 
 		// A successful API request is acknowledged immediately.
-		void this.setState("settings.limited_heating_power", value, true);
-		this.log.debug(`Limited heating power set to ${value}%.`);
+		void this.setStateChanged("settings.limited_heating_power", value, true);
 
 		// Update the fast data after changing the heating power limit.
 		await this.updateFastData();
@@ -919,8 +897,7 @@ class Millheater extends utils.Adapter {
 		}
 
 		// A successful API request is acknowledged immediately.
-		void this.setState("settings.additional_mode", value, true);
-		this.log.debug(`Additional mode set to ${value}.`);
+		void this.setStateChanged("settings.additional_mode", value, true);
 
 		// Update the fast data after changing the additional mode.
 		await this.updateFastData();
@@ -943,8 +920,7 @@ class Millheater extends utils.Adapter {
 		}
 
 		// A successful API request is acknowledged immediately.
-		void this.setState("settings.temperature_calibration_offset", value, true);
-		this.log.debug(`Temperature calibration offset set to ${value} °C.`);
+		void this.setStateChanged("settings.temperature_calibration_offset", value, true);
 
 		// A changed calibration offset can affect the heater control.
 		await this.updateFastData();
