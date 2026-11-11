@@ -1,8 +1,21 @@
 {
 	"common": {
 		"name": "millheater",
-		"version": "0.1.14",
+		"version": "0.1.15",
 		"news": {
+			"0.1.15": {
+				"en": "State updates have been optimized to avoid unnecessary database writes and state change events.",
+				"de": "Statusaktualisierungen wurden optimiert, um unnötige Datenbankschreibvorgänge und State-Änderungsereignisse zu vermeiden.",
+				"ru": "Обновление состояний оптимизировано, чтобы избежать ненужных записей в базу данных и событий изменения состояний.",
+				"pt": "As atualizações dos estados foram otimizadas para evitar gravações desnecessárias na base de dados e eventos de alteração de estado.",
+				"nl": "Statusupdates zijn geoptimaliseerd om onnodige databasebewerkingen en statuswijzigingsgebeurtenissen te voorkomen.",
+				"fr": "Les mises à jour des états ont été optimisées afin d'éviter les écritures inutiles dans la base de données et les événements de changement d'état.",
+				"it": "Gli aggiornamenti degli stati sono stati ottimizzati per evitare scritture non necessarie nel database ed eventi di modifica degli stati.",
+				"es": "Las actualizaciones de estado se han optimizado para evitar escrituras innecesarias en la base de datos y eventos de cambio de estado.",
+				"pl": "Aktualizacje stanów zostały zoptymalizowane, aby uniknąć niepotrzebnych zapisów w bazie danych i zdarzeń zmiany stanu.",
+				"uk": "Оновлення станів оптимізовано, щоб уникнути непотрібних записів до бази даних і подій зміни станів.",
+				"zh-cn": "状态更新已得到优化，以避免不必要的数据库写入和状态变更事件。"
+			},
 			"0.1.14": {
 				"en": "Improved API connection handling and reduced repeated log messages during connection failures.",
 				"de": "API-Verbindungsbehandlung verbessert und wiederholte Logmeldungen bei Verbindungsfehlern reduziert.",

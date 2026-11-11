@@ -417,6 +417,11 @@ The adapter follows these principles:
 
 ## Changelog
 
+### 0.1.15
+
+- Use `setStateChanged()` for regular state updates to avoid unnecessary database writes and state change events.
+- Keep `setState()` for explicit state reset operations.
+
 ### 0.1.14
 
 * Improved API connection handling and connection status updates.
