@@ -402,6 +402,19 @@ The source code is written in TypeScript.
 The adapter follows the ioBroker development and coding guidelines.
 For state objects, the adapter uses the official ioBroker state roles.
 
+### State updates
+
+The adapter uses `setStateChanged()` for state updates wherever possible.
+
+This avoids unnecessary database writes and state change events when a value has not changed. This is particularly useful for regularly polled device data.
+
+The adapter follows these principles:
+
+* Device values are only written when their values change.
+* Successfully processed write commands are acknowledged immediately using `ack = true`.
+* Connection status updates are only written when the connection state changes.
+* Invalid or missing API values never overwrite existing states.
+
 ## Changelog
 
 ### 0.1.14
