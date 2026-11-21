@@ -281,6 +281,10 @@ The adapter follows these principles:
 
 ## Changelog
 
+### 0.2.1
+
+- Dependencies have been updated.
+
 ### 0.2.0
 
 - BREAKING: The adapter now supports multiple Mill devices within a single instance. The configuration and device
