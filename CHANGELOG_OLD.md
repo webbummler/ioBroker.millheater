@@ -1,5 +1,30 @@
 # Older changes
-### 0.1.9
+### 0.1.14
+
+* Improved API connection handling and connection status updates.
+* Reduced repeated log messages during connection failures and timeouts.
+
+### 0.1.13
+
+* Fixed handling of the `OFF` operation mode.
+* Corrected translations in several languages.
+
+### 0.1.12
+
+* Replaced interval-based polling with timeout-based scheduling.
+* Renamed polling timer properties to match their corresponding update methods.
+* Pin ESLint to version 9 to avoid dependency conflicts with eslint-plugin-import.
+* Dependencies have been updated.
+
+### 0.1.11
+
+* Added automatic detection of heater replacement using the MAC address. Device state values are reset while state objects and the connection status are preserved.
+* Dependencies have been updated.
+
+### 0.1.10
+
+* Added support for socket and convection heaters.
+* Fixed reading of the limited heating power for panel heaters.### 0.1.9
 
 * Added multilingual translations for state names in all supported languages to improve readability and satisfy ioBroker object validation requirements.
 
