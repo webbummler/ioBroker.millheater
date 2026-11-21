@@ -36,6 +36,7 @@ __export(millHeaterDevice_exports, {
 module.exports = __toCommonJS(millHeaterDevice_exports);
 var http = __toESM(require("node:http"));
 var import_async_mutex = require("async-mutex");
+var import_utils = require("./utils");
 function normalizeMacAddress(macAddress) {
   const normalized = macAddress.replace(/[:-]/g, "").trim().toLowerCase();
   return /^[0-9a-f]{12}$/.test(normalized) ? normalized : void 0;
@@ -93,6 +94,12 @@ class MillHeaterDevice {
     "settings.heating_level_percentage": "Oil" /* Oil */,
     "settings.limited_heating_power": "Panel" /* Panel */
   };
+  static MAX_API_RESPONSE_SIZE = 1024 * 1024;
+  /**
+   * Maximum number of concurrently pending state-change handlers per device.
+   * Prevents unbounded API mutex waiters (CWE-770).
+   */
+  static MAX_PENDING_STATE_CHANGES = 10;
   apiMutex = new import_async_mutex.Mutex();
   apiTimeout;
   host;
@@ -107,7 +114,9 @@ class MillHeaterDevice {
   isInitialized = false;
   isObjectsCreated = false;
   modelName = "";
+  pendingStateChanges = 0;
   pollingSuspended = false;
+  writeQueueOverflowLogged = false;
   discoveryRetryTimer;
   updateFastDataTimer;
   updateSlowDataTimer;
@@ -168,59 +177,76 @@ class MillHeaterDevice {
     if (this.isUnloading || this.isDisabled || state.ack !== false) {
       return;
     }
-    if (!this.isStateSupported(id)) {
-      this.adapter.log.warn(
-        `Ignoring write to ${this.getStateId(id)}: not supported by ${detectDeviceType(this.modelName)} devices.`
-      );
-      await this.adapter.setState(this.getStateId(id), null, true);
+    if (this.pendingStateChanges >= MillHeaterDevice.MAX_PENDING_STATE_CHANGES) {
+      if (!this.writeQueueOverflowLogged) {
+        this.writeQueueOverflowLogged = true;
+        this.adapter.log.warn(
+          `Rejecting write to ${this.getStateId(id)}: too many pending state changes for ${this.userDefinedName}.`
+        );
+      }
       return;
     }
-    switch (id) {
-      case "control-status.operation_mode":
-        if (typeof state.val === "string") {
-          await this.setOperationMode(state.val);
-        } else {
-          this.adapter.log.warn(`Invalid value for ${this.getStateId(id)}: expected a string.`);
-        }
-        break;
-      case "control-status.set_temperature":
-        if (typeof state.val === "number") {
-          await this.setTemperature(state.val);
-        } else {
-          this.adapter.log.warn(`Invalid value for ${this.getStateId(id)}: expected a number.`);
-        }
-        break;
-      case "settings.additional_mode":
-        if (typeof state.val === "number") {
-          await this.setAdditionalMode(state.val);
-        } else {
-          this.adapter.log.warn(`Invalid value for ${this.getStateId(id)}: expected a number.`);
-        }
-        break;
-      case "settings.heating_level_percentage":
-        if (typeof state.val === "number") {
-          await this.setHeatingLevelPercentage(state.val);
-        } else {
-          this.adapter.log.warn(`Invalid value for ${this.getStateId(id)}: expected a number.`);
-        }
-        break;
-      case "settings.limited_heating_power":
-        if (typeof state.val === "number") {
-          await this.setLimitedHeatingPower(state.val);
-        } else {
-          this.adapter.log.warn(`Invalid value for ${this.getStateId(id)}: expected a number.`);
-        }
-        break;
-      case "settings.temperature_calibration_offset":
-        if (typeof state.val === "number") {
-          await this.setTemperatureCalibrationOffset(state.val);
-        } else {
-          this.adapter.log.warn(`Invalid value for ${this.getStateId(id)}: expected a number.`);
-        }
-        break;
-      default:
-        this.adapter.log.debug(`Unsupported command for ${this.getStateId(id)}: ${String(state.val)}`);
-        break;
+    this.pendingStateChanges++;
+    try {
+      if (!this.isStateSupported(id)) {
+        this.adapter.log.warn(
+          `Ignoring write to ${this.getStateId(id)}: not supported by ${detectDeviceType(this.modelName)} devices.`
+        );
+        await this.adapter.setState(this.getStateId(id), null, true);
+        return;
+      }
+      switch (id) {
+        case "control-status.operation_mode":
+          if (typeof state.val === "string") {
+            await this.setOperationMode(state.val);
+          } else {
+            this.adapter.log.warn(`Invalid value for ${this.getStateId(id)}: expected a string.`);
+          }
+          break;
+        case "control-status.set_temperature":
+          if (typeof state.val === "number") {
+            await this.setTemperature(state.val);
+          } else {
+            this.adapter.log.warn(`Invalid value for ${this.getStateId(id)}: expected a number.`);
+          }
+          break;
+        case "settings.additional_mode":
+          if (typeof state.val === "number") {
+            await this.setAdditionalMode(state.val);
+          } else {
+            this.adapter.log.warn(`Invalid value for ${this.getStateId(id)}: expected a number.`);
+          }
+          break;
+        case "settings.heating_level_percentage":
+          if (typeof state.val === "number") {
+            await this.setHeatingLevelPercentage(state.val);
+          } else {
+            this.adapter.log.warn(`Invalid value for ${this.getStateId(id)}: expected a number.`);
+          }
+          break;
+        case "settings.limited_heating_power":
+          if (typeof state.val === "number") {
+            await this.setLimitedHeatingPower(state.val);
+          } else {
+            this.adapter.log.warn(`Invalid value for ${this.getStateId(id)}: expected a number.`);
+          }
+          break;
+        case "settings.temperature_calibration_offset":
+          if (typeof state.val === "number") {
+            await this.setTemperatureCalibrationOffset(state.val);
+          } else {
+            this.adapter.log.warn(`Invalid value for ${this.getStateId(id)}: expected a number.`);
+          }
+          break;
+        default:
+          this.adapter.log.debug(`Unsupported command for ${this.getStateId(id)}: ${String(state.val)}`);
+          break;
+      }
+    } finally {
+      this.pendingStateChanges--;
+      if (this.pendingStateChanges === 0) {
+        this.writeQueueOverflowLogged = false;
+      }
     }
   }
   /**
@@ -402,11 +428,16 @@ class MillHeaterDevice {
     );
     return new Promise((resolve) => {
       let settled = false;
+      const request = http.request(url, { method, headers });
+      const totalTimeout = this.adapter.setTimeout(() => {
+        request.destroy(new Error(`Total timeout calling ${path}.`));
+      }, this.apiTimeout * 1e3);
       const finish = (result) => {
         if (settled) {
           return;
         }
         settled = true;
+        this.adapter.clearTimeout(totalTimeout);
         resolve(result);
       };
       const handleRequestError = (error) => {
@@ -416,11 +447,20 @@ class MillHeaterDevice {
         this.updateApiConnectionState(false, path, error);
         finish(void 0);
       };
-      const request = http.request(url, { method, headers }, (response) => {
+      request.on("response", (response) => {
         let data = "";
-        response.setEncoding("utf8");
+        let receivedBytes = 0;
         response.on("data", (chunk) => {
-          data += chunk;
+          receivedBytes += chunk.length;
+          if (receivedBytes > MillHeaterDevice.MAX_API_RESPONSE_SIZE) {
+            response.destroy(
+              new Error(
+                `API response from ${path} exceeds the maximum size of ${MillHeaterDevice.MAX_API_RESPONSE_SIZE} bytes.`
+              )
+            );
+            return;
+          }
+          data += chunk.toString("utf8");
         });
         response.on("error", handleRequestError);
         response.on("end", () => {
@@ -437,7 +477,9 @@ class MillHeaterDevice {
               `Mill API request failed for ${path} at ${this.host}: HTTP ${statusCode != null ? statusCode : "unknown"}.`
             );
             if (data.trim()) {
-              this.adapter.log.error(`Mill API response from ${this.host}: ${data}`);
+              this.adapter.log.error(
+                `Mill API response from ${(0, import_utils.sanitizeLogMessage)(this.host)}: ${(0, import_utils.sanitizeLogMessage)(data)}`
+              );
             }
             finish(void 0);
             return;

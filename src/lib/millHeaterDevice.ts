@@ -105,6 +105,11 @@ export class MillHeaterDevice {
 		"settings.limited_heating_power": MillDeviceType.Panel,
 	};
 	private static readonly MAX_API_RESPONSE_SIZE = 1024 * 1024;
+	/**
+	 * Maximum number of concurrently pending state-change handlers per device.
+	 * Prevents unbounded API mutex waiters (CWE-770).
+	 */
+	private static readonly MAX_PENDING_STATE_CHANGES = 10;
 	private readonly apiMutex = new Mutex();
 	private readonly apiTimeout: number;
 	private readonly host: string;
@@ -120,7 +125,9 @@ export class MillHeaterDevice {
 	private isInitialized = false;
 	private isObjectsCreated = false;
 	private modelName = "";
+	private pendingStateChanges = 0;
 	private pollingSuspended = false;
+	private writeQueueOverflowLogged = false;
 
 	private discoveryRetryTimer: ioBroker.Timeout | undefined;
 	private updateFastDataTimer: ioBroker.Timeout | undefined;
@@ -221,68 +228,88 @@ export class MillHeaterDevice {
 			return;
 		}
 
-		if (!this.isStateSupported(id)) {
-			this.adapter.log.warn(
-				`Ignoring write to ${this.getStateId(id)}: not supported by ${detectDeviceType(this.modelName)} devices.`,
-			);
-
-			// Reset the unsupported state and acknowledge the write.
-			await this.adapter.setState(this.getStateId(id), null, true);
+		if (this.pendingStateChanges >= MillHeaterDevice.MAX_PENDING_STATE_CHANGES) {
+			if (!this.writeQueueOverflowLogged) {
+				this.writeQueueOverflowLogged = true;
+				this.adapter.log.warn(
+					`Rejecting write to ${this.getStateId(id)}: too many pending state changes for ${this.userDefinedName}.`,
+				);
+			}
 			return;
 		}
 
-		switch (id) {
-			case "control-status.operation_mode":
-				if (typeof state.val === "string") {
-					await this.setOperationMode(state.val);
-				} else {
-					this.adapter.log.warn(`Invalid value for ${this.getStateId(id)}: expected a string.`);
-				}
-				break;
+		this.pendingStateChanges++;
 
-			case "control-status.set_temperature":
-				if (typeof state.val === "number") {
-					await this.setTemperature(state.val);
-				} else {
-					this.adapter.log.warn(`Invalid value for ${this.getStateId(id)}: expected a number.`);
-				}
-				break;
+		try {
+			if (!this.isStateSupported(id)) {
+				this.adapter.log.warn(
+					`Ignoring write to ${this.getStateId(id)}: not supported by ${detectDeviceType(this.modelName)} devices.`,
+				);
 
-			case "settings.additional_mode":
-				if (typeof state.val === "number") {
-					await this.setAdditionalMode(state.val);
-				} else {
-					this.adapter.log.warn(`Invalid value for ${this.getStateId(id)}: expected a number.`);
-				}
-				break;
+				// Reset the unsupported state and acknowledge the write.
+				await this.adapter.setState(this.getStateId(id), null, true);
+				return;
+			}
 
-			case "settings.heating_level_percentage":
-				if (typeof state.val === "number") {
-					await this.setHeatingLevelPercentage(state.val);
-				} else {
-					this.adapter.log.warn(`Invalid value for ${this.getStateId(id)}: expected a number.`);
-				}
-				break;
+			switch (id) {
+				case "control-status.operation_mode":
+					if (typeof state.val === "string") {
+						await this.setOperationMode(state.val);
+					} else {
+						this.adapter.log.warn(`Invalid value for ${this.getStateId(id)}: expected a string.`);
+					}
+					break;
 
-			case "settings.limited_heating_power":
-				if (typeof state.val === "number") {
-					await this.setLimitedHeatingPower(state.val);
-				} else {
-					this.adapter.log.warn(`Invalid value for ${this.getStateId(id)}: expected a number.`);
-				}
-				break;
+				case "control-status.set_temperature":
+					if (typeof state.val === "number") {
+						await this.setTemperature(state.val);
+					} else {
+						this.adapter.log.warn(`Invalid value for ${this.getStateId(id)}: expected a number.`);
+					}
+					break;
 
-			case "settings.temperature_calibration_offset":
-				if (typeof state.val === "number") {
-					await this.setTemperatureCalibrationOffset(state.val);
-				} else {
-					this.adapter.log.warn(`Invalid value for ${this.getStateId(id)}: expected a number.`);
-				}
-				break;
+				case "settings.additional_mode":
+					if (typeof state.val === "number") {
+						await this.setAdditionalMode(state.val);
+					} else {
+						this.adapter.log.warn(`Invalid value for ${this.getStateId(id)}: expected a number.`);
+					}
+					break;
 
-			default:
-				this.adapter.log.debug(`Unsupported command for ${this.getStateId(id)}: ${String(state.val)}`);
-				break;
+				case "settings.heating_level_percentage":
+					if (typeof state.val === "number") {
+						await this.setHeatingLevelPercentage(state.val);
+					} else {
+						this.adapter.log.warn(`Invalid value for ${this.getStateId(id)}: expected a number.`);
+					}
+					break;
+
+				case "settings.limited_heating_power":
+					if (typeof state.val === "number") {
+						await this.setLimitedHeatingPower(state.val);
+					} else {
+						this.adapter.log.warn(`Invalid value for ${this.getStateId(id)}: expected a number.`);
+					}
+					break;
+
+				case "settings.temperature_calibration_offset":
+					if (typeof state.val === "number") {
+						await this.setTemperatureCalibrationOffset(state.val);
+					} else {
+						this.adapter.log.warn(`Invalid value for ${this.getStateId(id)}: expected a number.`);
+					}
+					break;
+
+				default:
+					this.adapter.log.debug(`Unsupported command for ${this.getStateId(id)}: ${String(state.val)}`);
+					break;
+			}
+		} finally {
+			this.pendingStateChanges--;
+
+			if (this.pendingStateChanges === 0) {
+				this.writeQueueOverflowLogged = false;
+			}
 		}
 	}
 

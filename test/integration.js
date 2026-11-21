@@ -1298,6 +1298,7 @@ tests.integration(path.join(__dirname, ".."), {
             let server;
             let mock;
             let delayNextControlStatus = false;
+            let delayNextSetTemperature = false;
             let reportedSetTemperature = 22;
 
             before(async function () {
@@ -1328,6 +1329,12 @@ tests.integration(path.join(__dirname, ".."), {
                     }
                     if (request.path === "/set-temperature") {
                         reportedSetTemperature = request.body.value;
+
+                        if (delayNextSetTemperature) {
+                            delayNextSetTemperature = false;
+                            return { body: { status: "ok" }, delayMs: 2500 };
+                        }
+
                         return { body: { status: "ok" } };
                     }
                     return { statusCode: 404, body: { status: "error" } };
@@ -1371,6 +1378,63 @@ tests.integration(path.join(__dirname, ".."), {
                     deviceState(MAC_A, "control-status.set_temperature"),
                     state => state.ack === true && state.val === 23,
                 );
+            });
+            it("limits the number of pending state changes per device", async function () {
+                this.timeout(25000);
+                const harness = getHarness();
+                const stateId = deviceState(MAC_A, "control-status.set_temperature");
+                const writeCount = mock.countRequests("POST", "/set-temperature");
+
+                // Hold the first write request to build up the pending queue.
+                delayNextSetTemperature = true;
+
+                const firstWritePromise = mock.waitForRequest("POST", "/set-temperature", mock.requests.length);
+                await harness.states.setStateAsync(stateId, { val: 24, ack: false });
+
+                const firstWrite = await firstWritePromise;
+                assert.deepStrictEqual(firstWrite.body, { type: "Normal", value: 24 });
+
+                // Queue nine additional writes: ten handlers in total.
+                for (let value = 25; value <= 33; value++) {
+                    await harness.states.setStateAsync(stateId, { val: value, ack: false });
+                }
+
+                // The eleventh write must be rejected.
+                await harness.states.setStateAsync(stateId, { val: 34, ack: false });
+
+                const overflowWarning = /Rejecting write to .*: too many pending state changes/;
+                const warningDeadline = Date.now() + 2000;
+
+                while (!harness.hasLog(overflowWarning, "warn") && Date.now() < warningDeadline) {
+                    await new Promise(resolve => setTimeout(resolve, 25));
+                }
+
+                assert.ok(
+                    harness.hasLog(overflowWarning, "warn"),
+                    "Exceeding the pending state-change limit must generate a warning.",
+                );
+
+                // All ten accepted writes must complete.
+                await waitForState(harness, stateId, state => state.ack === true && state.val === 33, 15000);
+
+                assert.strictEqual(
+                    mock.countRequests("POST", "/set-temperature"),
+                    writeCount + 10,
+                    "Exactly ten writes must reach the Mill API; the eleventh must be rejected.",
+                );
+
+                // Allow the remaining post-write API updates to finish.
+                await new Promise(resolve => setTimeout(resolve, 250));
+
+                // The queue must accept new writes again after draining.
+                const recoveryWritePromise = mock.waitForRequest("POST", "/set-temperature", mock.requests.length);
+
+                await harness.states.setStateAsync(stateId, { val: 35, ack: false });
+
+                const recoveryWrite = await recoveryWritePromise;
+                assert.deepStrictEqual(recoveryWrite.body, { type: "Normal", value: 35 });
+
+                await waitForState(harness, stateId, state => state.ack === true && state.val === 35);
             });
         });
 
