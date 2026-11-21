@@ -281,6 +281,10 @@ The adapter follows these principles:
 
 ## Changelog
 
+### 0.2.2
+
+- Improved API security and reliability: external response data is sanitized before logging, response sizes and total request durations are limited, and pending state changes are capped at 10 per device.
+
 ### 0.2.1
 
 - Dependencies have been updated.

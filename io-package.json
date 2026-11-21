@@ -1,8 +1,21 @@
 {
 	"common": {
 		"name": "millheater",
-		"version": "0.2.1",
+		"version": "0.2.2",
 		"news": {
+			"0.2.2": {
+				"en": "Security and reliability improvements",
+				"de": "Verbesserungen bei Sicherheit und Zuverlässigkeit",
+				"ru": "Улучшения безопасности и надёжности",
+				"pt": "Melhorias de segurança e fiabilidade",
+				"nl": "Verbeteringen op het gebied van beveiliging en betrouwbaarheid",
+				"fr": "Améliorations de la sécurité et de la fiabilité",
+				"it": "Miglioramenti alla sicurezza e all'affidabilità",
+				"es": "Mejoras de seguridad y fiabilidad",
+				"pl": "Ulepszenia bezpieczeństwa i niezawodności",
+				"uk": "Покращення безпеки та надійності",
+				"zh-cn": "安全性和可靠性改进"
+			},
 			"0.2.1": {
 				"en": "Dependencies have been updated.",
 				"de": "Abhängigkeiten wurden aktualisiert.",
@@ -41,58 +54,6 @@
 				"pl": "Aktualizacje stanów zostały zoptymalizowane, aby uniknąć niepotrzebnych zapisów w bazie danych i zdarzeń zmiany stanu.",
 				"uk": "Оновлення станів оптимізовано, щоб уникнути непотрібних записів до бази даних і подій зміни станів.",
 				"zh-cn": "状态更新已得到优化，以避免不必要的数据库写入和状态变更事件。"
-			},
-			"0.1.14": {
-				"en": "Improved API connection handling and reduced repeated log messages during connection failures.",
-				"de": "API-Verbindungsbehandlung verbessert und wiederholte Logmeldungen bei Verbindungsfehlern reduziert.",
-				"ru": "Улучшена обработка API-соединения и сокращено количество повторяющихся сообщений журнала при сбоях соединения.",
-				"pt": "Melhorado o tratamento da conexão da API e reduzidas as mensagens repetidas no log durante falhas de conexão.",
-				"nl": "De verwerking van de API-verbinding verbeterd en herhaalde logmeldingen bij verbindingsproblemen verminderd.",
-				"fr": "Amélioration de la gestion de la connexion API et réduction des messages répétés dans le journal en cas d’échec de connexion.",
-				"it": "Migliorata la gestione della connessione API e ridotti i messaggi ripetuti nel log in caso di problemi di connessione.",
-				"es": "Se mejoró la gestión de la conexión de la API y se redujeron los mensajes repetidos en el registro durante los fallos de conexión.",
-				"pl": "Ulepszono obsługę połączenia API i ograniczono powtarzające się komunikaty dziennika podczas problemów z połączeniem.",
-				"uk": "Покращено обробку з’єднання API та зменшено кількість повторюваних повідомлень журналу під час збоїв з’єднання.",
-				"zh-cn": "改进了 API 连接处理，并减少了连接失败时重复出现的日志消息。"
-			},
-			"0.1.13": {
-				"en": "Fixed OFF mode and corrected translations.",
-				"de": "OFF-Modus korrigiert und Übersetzungen korrigiert.",
-				"ru": "Исправлен режим OFF и исправлены переводы.",
-				"pt": "Modo OFF corrigido e traduções corrigidas.",
-				"nl": "Probleem met de OFF-modus opgelost en vertalingen gecorrigeerd.",
-				"fr": "Correction du mode OFF et des traductions.",
-				"it": "Corretta la modalità OFF e corrette le traduzioni.",
-				"es": "Se corrigió el modo OFF y se corrigieron las traducciones.",
-				"pl": "Naprawiono tryb OFF i poprawiono tłumaczenia.",
-				"uk": "Виправлено режим OFF та переклади.",
-				"zh-cn": "修复了关闭模式并更正了翻译。"
-			},
-			"0.1.12": {
-				"en": "Improved polling scheduling.",
-				"de": "Abfrageplanung verbessert.",
-				"ru": "Улучшено планирование опросов.",
-				"pt": "Agendamento das consultas periódicas aprimorado.",
-				"nl": "Verbeterde pollingplanning.",
-				"fr": "Planification des requêtes périodiques améliorée.",
-				"it": "Migliorata la pianificazione delle richieste periodiche.",
-				"es": "Mejorada la planificación de las consultas periódicas.",
-				"pl": "Ulepszone planowanie odpytywania.",
-				"uk": "Покращене планування опитувань.",
-				"zh-cn": "改进了轮询调度。"
-			},
-			"0.1.11": {
-				"en": "Added automatic heater replacement detection based on the MAC address.",
-				"de": "Automatische Erkennung des Heizungsaustauschs basierend auf der MAC-Adresse hinzugefügt.",
-				"ru": "Добавлено автоматическое определение замены нагревателя по MAC-адресу.",
-				"pt": "Adicionada detecção automática de substituição de aquecedor com base no endereço MAC.",
-				"nl": "Automatische detectie van vervanging van de verwarming toegevoegd op basis van het MAC-adres.",
-				"fr": "Ajout d'une détection automatique de remplacement du radiateur basée sur l'adresse MAC.",
-				"it": "Aggiunto rilevamento automatico della sostituzione del riscaldatore in base all'indirizzo MAC.",
-				"es": "Se agregó detección automática de reemplazo del calentador según la dirección MAC.",
-				"pl": "Dodano automatyczne wykrywanie wymiany grzejnika na podstawie adresu MAC.",
-				"uk": "Додано автоматичне визначення заміни обігрівача за MAC-адресою.",
-				"zh-cn": "添加了基于MAC地址的自动加热器更换检测。"
 			}
 		},
 		"messages": [
