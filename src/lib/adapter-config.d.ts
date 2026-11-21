@@ -4,13 +4,17 @@
 declare global {
 	namespace ioBroker {
 		interface AdapterConfig {
-			host: string;
+			devices: {
+				userDefinedName?: string;
+				host: string;
+				pollWhenOff: boolean;
+			}[];
 			apiTimeout: number;
 			pollInterval1: number;
- 		    pollInterval2: number;
+			pollInterval2: number;
 		}
 	}
 }
 
-// this is required so the above AdapterConfig is found by TypeScript / type checking
+// This is required so the above AdapterConfig is found by TypeScript / type checking
 export {};
