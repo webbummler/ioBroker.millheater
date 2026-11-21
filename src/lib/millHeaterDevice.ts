@@ -104,6 +104,7 @@ export class MillHeaterDevice {
 		"settings.heating_level_percentage": MillDeviceType.Oil,
 		"settings.limited_heating_power": MillDeviceType.Panel,
 	};
+	private static readonly MAX_API_RESPONSE_SIZE = 1024 * 1024;
 	private readonly apiMutex = new Mutex();
 	private readonly apiTimeout: number;
 	private readonly host: string;
@@ -516,13 +517,22 @@ export class MillHeaterDevice {
 
 		return new Promise(resolve => {
 			let settled = false;
+
+			const request = http.request(url, { method, headers });
+
+			const totalTimeout = this.adapter.setTimeout(() => {
+				request.destroy(new Error(`Total timeout calling ${path}.`));
+			}, this.apiTimeout * 1000);
+
 			const finish = (result: Record<string, unknown> | undefined): void => {
 				if (settled) {
 					return;
 				}
 				settled = true;
+				this.adapter.clearTimeout(totalTimeout);
 				resolve(result);
 			};
+
 			const handleRequestError = (error: Error): void => {
 				if (settled) {
 					return;
@@ -531,19 +541,33 @@ export class MillHeaterDevice {
 				finish(undefined);
 			};
 
-			const request = http.request(url, { method, headers }, response => {
+			request.on("response", response => {
 				let data = "";
-				response.setEncoding("utf8");
+				let receivedBytes = 0;
+
 				response.on("data", chunk => {
-					data += chunk;
+					receivedBytes += chunk.length;
+					// CWE-770 - Allocation of Resources Without Limits
+					if (receivedBytes > MillHeaterDevice.MAX_API_RESPONSE_SIZE) {
+						response.destroy(
+							new Error(
+								`API response from ${path} exceeds the maximum size of ${MillHeaterDevice.MAX_API_RESPONSE_SIZE} bytes.`,
+							),
+						);
+						return;
+					}
+					data += chunk.toString("utf8");
 				});
+
 				response.on("error", handleRequestError);
+
 				response.on("end", () => {
 					if (settled) {
 						return;
 					}
 					const statusCode = response.statusCode;
 					this.adapter.log.debug(`HTTP status for ${path} at ${this.host}: ${statusCode ?? "undefined"}`);
+
 					// A /status response only confirms a Mill device connection after its
 					// model and MAC address have been validated and accepted in processStatus().
 					if (path !== "/status" && this.deviceId && this.isObjectsCreated) {
@@ -563,11 +587,13 @@ export class MillHeaterDevice {
 						finish(undefined);
 						return;
 					}
+
 					if (!data.trim()) {
 						this.adapter.log.error(`Empty response from ${path} at ${this.host}.`);
 						finish(undefined);
 						return;
 					}
+
 					try {
 						const parsed: unknown = JSON.parse(data);
 						if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
@@ -577,6 +603,7 @@ export class MillHeaterDevice {
 							finish(undefined);
 							return;
 						}
+
 						const dataRecord = parsed as Record<string, unknown>;
 						if (dataRecord.status !== "ok") {
 							this.adapter.log.error(
@@ -585,6 +612,7 @@ export class MillHeaterDevice {
 							finish(undefined);
 							return;
 						}
+
 						finish(dataRecord);
 					} catch (error) {
 						this.adapter.log.error(
@@ -599,6 +627,7 @@ export class MillHeaterDevice {
 			request.setTimeout(this.apiTimeout * 1000, () => {
 				request.destroy(new Error(`Timeout calling ${path}.`));
 			});
+
 			if (jsonBody !== undefined) {
 				request.write(jsonBody);
 			}
