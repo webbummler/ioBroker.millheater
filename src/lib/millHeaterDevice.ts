@@ -6,6 +6,7 @@
 
 import * as http from "node:http";
 import { E_ALREADY_LOCKED, E_CANCELED, Mutex, tryAcquire } from "async-mutex";
+import { sanitizeLogMessage } from "./utils";
 
 /**
  * Configuration settings for a Mill heater device.
@@ -555,7 +556,9 @@ export class MillHeaterDevice {
 							`Mill API request failed for ${path} at ${this.host}: HTTP ${statusCode ?? "unknown"}.`,
 						);
 						if (data.trim()) {
-							this.adapter.log.error(`Mill API response from ${this.host}: ${data}`);
+							this.adapter.log.error(
+								`Mill API response from ${sanitizeLogMessage(this.host)}: ${sanitizeLogMessage(data)}`,
+							);
 						}
 						finish(undefined);
 						return;
