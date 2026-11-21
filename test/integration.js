@@ -149,6 +149,26 @@ function createTrackedServer(handler) {
                 }
                 response.statusCode = result.statusCode ?? 200;
                 response.setHeader("Content-Type", "application/json");
+                if (result.chunks !== undefined) {
+                    let chunkIndex = 0;
+
+                    const sendNextChunk = () => {
+                        if (response.destroyed) {
+                            return;
+                        }
+
+                        if (chunkIndex >= result.chunks.length) {
+                            response.end();
+                            return;
+                        }
+
+                        response.write(result.chunks[chunkIndex++]);
+                        setTimeout(sendNextChunk, result.chunkIntervalMs ?? 250);
+                    };
+
+                    sendNextChunk();
+                    return;
+                }
                 if (result.rawBody !== undefined) {
                     response.end(result.rawBody);
                 } else if (result.body === undefined) {
@@ -767,6 +787,34 @@ tests.integration(path.join(__dirname, ".."), {
                                     delayMs: timeoutResponseDelay,
                                     body: createControlStatusResponse({ current_power: currentPower }).body,
                                 };
+                            case "http-error-injection":
+                                return {
+                                    statusCode: 500,
+                                    rawBody: "Heater failure\r\nINFO: forged log entry",
+                                };
+
+                            case "oversized":
+                                return {
+                                    rawBody: JSON.stringify({
+                                        status: "ok",
+                                        current_power: 999,
+                                        padding: "x".repeat(1024 * 1024),
+                                    }),
+                                };
+
+                            case "slow-stream": {
+                                const rawBody = JSON.stringify(
+                                    createControlStatusResponse({ current_power: 900 }).body,
+                                );
+                                const chunkSize = Math.ceil(rawBody.length / 8);
+
+                                return {
+                                    chunks: Array.from({ length: 8 }, (_, index) =>
+                                        rawBody.slice(index * chunkSize, (index + 1) * chunkSize),
+                                    ).filter(Boolean),
+                                    chunkIntervalMs: 250,
+                                };
+                            }
                             default:
                                 return createControlStatusResponse({ current_power: currentPower });
                         }
@@ -822,6 +870,85 @@ tests.integration(path.join(__dirname, ".."), {
                 currentPower = 800;
                 responseMode = "valid";
                 await waitForState(harness, stateId, state => state.val === 800, 8000);
+                await waitForState(
+                    harness,
+                    deviceState(MAC_A, "info.connection"),
+                    state => state.val === true,
+                );
+
+                // CWE-117: External line breaks must not create forged log entries.
+                responseMode = "http-error-injection";
+                await mock.waitForRequest("GET", "/control-status", mock.requests.length);
+                await new Promise(resolve => setTimeout(resolve, 100));
+
+                assert.ok(
+                    harness.hasLog(
+                        /Mill API response from .*: Heater failure\\r\\nINFO: forged log entry/,
+                        "error",
+                    ),
+                    "Line breaks in external API responses must be escaped.",
+                );
+                assert.strictEqual(
+                    harness.hasLog(/^INFO: forged log entry$/, "error"),
+                    false,
+                    "The forged log entry must not appear as a separate log line.",
+                );
+
+                // CWE-770: Oversized responses must be aborted.
+                responseMode = "oversized";
+                await mock.waitForRequest("GET", "/control-status", mock.requests.length);
+
+                await waitForState(
+                    harness,
+                    deviceState(MAC_A, "info.connection"),
+                    state => state.val === false,
+                );
+
+                assert.strictEqual(
+                    (await harness.states.getStateAsync(stateId)).val,
+                    800,
+                    "An oversized response must not overwrite the last valid value.",
+                );
+
+                // Recover the connection before testing the absolute timeout.
+                currentPower = 810;
+                responseMode = "valid";
+
+                await waitForState(harness, stateId, state => state.val === 810, 8000);
+                await waitForState(
+                    harness,
+                    deviceState(MAC_A, "info.connection"),
+                    state => state.val === true,
+                );
+
+                // CWE-770: Continuous data must not prevent the absolute timeout.
+                responseMode = "slow-stream";
+
+                await mock.waitForRequest("GET", "/control-status", mock.requests.length);
+
+                await waitForState(
+                    harness,
+                    deviceState(MAC_A, "info.connection"),
+                    state => state.val === false,
+                    5000,
+                );
+
+                assert.strictEqual(
+                    (await harness.states.getStateAsync(stateId)).val,
+                    810,
+                    "A continuously streaming response must be aborted by the absolute timeout.",
+                );
+
+                assert.ok(
+                    harness.hasLog(/Total timeout calling \/control-status/, "warn"),
+                    "The absolute request timeout must be logged.",
+                );
+
+                // Verify that API communication recovers after the timeout.
+                currentPower = 850;
+                responseMode = "valid";
+
+                await waitForState(harness, stateId, state => state.val === 850, 8000);
                 await waitForState(
                     harness,
                     deviceState(MAC_A, "info.connection"),
