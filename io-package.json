@@ -1,8 +1,21 @@
 {
 	"common": {
 		"name": "millheater",
-		"version": "0.1.15",
+		"version": "0.2.0",
 		"news": {
+			"0.2.0": {
+				"en": "BREAKING: Multi-device support replaces the single-device configuration with a device list and moves device-specific state IDs under device objects identified by MAC address. Existing configurations and state references must be migrated manually. See the README for details.",
+				"de": "INKOMPATIBLE ÄNDERUNG: Die Unterstützung mehrerer Geräte ersetzt die Einzelgeräte-Konfiguration durch eine Geräteliste und verschiebt die IDs gerätespezifischer Datenpunkte unter Geräteobjekte, die anhand der MAC-Adresse identifiziert werden. Bestehende Konfigurationen und Datenpunkt-Referenzen müssen manuell angepasst werden. Weitere Informationen stehen in der README.",
+				"ru": "НЕСОВМЕСТИМОЕ ИЗМЕНЕНИЕ: Поддержка нескольких устройств заменяет конфигурацию одного устройства списком устройств и переносит идентификаторы состояний отдельных устройств в объекты, идентифицируемые по MAC-адресу. Существующие конфигурации и ссылки на состояния необходимо перенести вручную. Подробности см. в README.",
+				"pt": "ALTERAÇÃO INCOMPATÍVEL: O suporte a vários dispositivos substitui a configuração de um único dispositivo por uma lista de dispositivos e coloca os IDs dos estados específicos de cada dispositivo em objetos identificados pelo endereço MAC. As configurações existentes e as referências aos estados têm de ser migradas manualmente. Consulte o README para obter mais informações.",
+				"nl": "NIET-COMPATIBELE WIJZIGING: Ondersteuning voor meerdere apparaten vervangt de configuratie voor één apparaat door een apparatenlijst en verplaatst de ID's van apparaatspecifieke statussen naar apparaatobjecten die aan de hand van het MAC-adres worden geïdentificeerd. Bestaande configuraties en verwijzingen naar statussen moeten handmatig worden aangepast. Raadpleeg de README voor meer informatie.",
+				"fr": "MODIFICATION INCOMPATIBLE : La prise en charge de plusieurs appareils remplace la configuration d'un appareil unique par une liste d'appareils et déplace les identifiants des états propres à chaque appareil dans des objets identifiés par leur adresse MAC. Les configurations existantes et les références aux états doivent être migrées manuellement. Consultez le README pour plus d'informations.",
+				"it": "MODIFICA INCOMPATIBILE: Il supporto per più dispositivi sostituisce la configurazione del singolo dispositivo con un elenco di dispositivi e sposta gli ID degli stati specifici di ciascun dispositivo all'interno di oggetti identificati tramite l'indirizzo MAC. Le configurazioni esistenti e i riferimenti agli stati devono essere aggiornati manualmente. Per ulteriori informazioni, consulta il README.",
+				"es": "CAMBIO INCOMPATIBLE: La compatibilidad con varios dispositivos sustituye la configuración de un único dispositivo por una lista de dispositivos y traslada los ID de los estados específicos de cada dispositivo a objetos identificados por la dirección MAC. Las configuraciones existentes y las referencias a los estados deben actualizarse manualmente. Consulta el README para obtener más información.",
+				"pl": "NIEKOMPATYBILNA ZMIANA: Obsługa wielu urządzeń zastępuje konfigurację pojedynczego urządzenia listą urządzeń i przenosi identyfikatory stanów przypisanych do poszczególnych urządzeń do obiektów identyfikowanych na podstawie adresu MAC. Istniejące konfiguracje i odwołania do stanów należy zaktualizować ręcznie. Więcej informacji znajduje się w README.",
+				"uk": "НЕСУМІСНА ЗМІНА: Підтримка кількох пристроїв замінює конфігурацію одного пристрою списком пристроїв і переносить ідентифікатори станів окремих пристроїв до об’єктів, ідентифікованих за MAC-адресою. Наявні конфігурації та посилання на стани потрібно оновити вручну. Докладніше див. у README.",
+				"zh-cn": "不兼容变更：多设备支持将单设备配置替换为设备列表，并将各设备专属状态的 ID 移至通过 MAC 地址标识的设备对象下。现有配置和状态引用必须手动迁移。更多信息请参阅 README。"
+			},
 			"0.1.15": {
 				"en": "State updates have been optimized to avoid unnecessary database writes and state change events.",
 				"de": "Statusaktualisierungen wurden optimiert, um unnötige Datenbankschreibvorgänge und State-Änderungsereignisse zu vermeiden.",
@@ -67,34 +80,50 @@
 				"pl": "Dodano automatyczne wykrywanie wymiany grzejnika na podstawie adresu MAC.",
 				"uk": "Додано автоматичне визначення заміни обігрівача за MAC-адресою.",
 				"zh-cn": "添加了基于MAC地址的自动加热器更换检测。"
-			},
-			"0.1.10": {
-				"en": "Added support for socket and convection heaters and fixed reading of limited heating power for panel heaters.",
-				"de": "Unterstützung für Steckdosen- und Konvektionsheizungen hinzugefügt und die Anzeige der begrenzten Heizleistung für Flächenheizungen korrigiert.",
-				"ru": "Добавлена ​​поддержка розеточных и конвекционных обогревателей, а также исправлено показание ограниченной мощности обогрева для панельных обогревателей.",
-				"pt": "Adicionado suporte para aquecedores de tomada e convecção e corrigida a leitura da potência de aquecimento limitada para aquecedores de painel.",
-				"nl": "Ondersteuning toegevoegd voor stopcontact- en convectieverwarmers en de uitlezing van het begrensde verwarmingsvermogen voor paneelverwarmers gecorrigeerd.",
-				"fr": "Ajout de la prise en charge des radiateurs à prise et à convection et correction de la lecture de la puissance de chauffage limitée pour les panneaux chauffants.",
-				"it": "Aggiunto supporto per riscaldatori a presa e a convezione e corretta la lettura della potenza di riscaldamento limitata per i riscaldatori a pannello.",
-				"es": "Se agregó soporte para calentadores de enchufe y de convección y se corrigió la lectura de la potencia de calefacción limitada para calentadores de panel.",
-				"pl": "Dodano obsługę grzejników gniazdowych i konwekcyjnych oraz poprawiono odczyt ograniczonej mocy grzewczej dla grzejników panelowych.",
-				"uk": "Додано підтримку розеткових і конвекційних обігрівачів і виправлено показання обмеженої потужності нагріву для панельних обігрівачів.",
-				"zh-cn": "增加了对插座和对流加热器的支持，并修复了面板加热器有限加热功率的读数。"
-			},
-			"0.1.9": {
-				"en": "Added multilingual state-name translations.",
-				"de": "Mehrsprachige Übersetzungen der Zustandsnamen hinzugefügt.",
-				"ru": "Добавлен многоязычный перевод названий состояний.",
-				"pt": "Adicionadas traduções multilíngues dos nomes dos estados do sistema.",
-				"nl": "Meertalige vertalingen van statusnamen toegevoegd.",
-				"fr": "Ajout de traductions multilingues des noms des états du système.",
-				"it": "Aggiunte traduzioni multilingue dei nomi degli stati del sistema.",
-				"es": "Se añadieron traducciones multilingües de los nombres de los estados del sistema.",
-				"pl": "Dodano wielojęzyczne tłumaczenia nazw stanów systemu.",
-				"uk": "Додано багатомовні переклади назв станів системи.",
-				"zh-cn": "添加了系统状态名称的多语言翻译。"
 			}
 		},
+		"messages": [
+			{
+				"condition": {
+					"operand": "and",
+					"rules": [
+						"oldVersion<0.2.0",
+						"newVersion>=0.2.0"
+					]
+				},
+				"title": {
+					"en": "Important: Breaking configuration change",
+					"de": "Wichtig: Inkompatible Konfigurationsänderung",
+					"ru": "Важно: несовместимое изменение конфигурации",
+					"pt": "Importante: alteração incompatível na configuração",
+					"nl": "Belangrijk: niet-compatibele configuratiewijziging",
+					"fr": "Important : modification incompatible de la configuration",
+					"it": "Importante: modifica incompatibile della configurazione",
+					"es": "Importante: cambio incompatible en la configuración",
+					"pl": "Ważne: niekompatybilna zmiana konfiguracji",
+					"uk": "Увага: несумісна зміна конфігурації",
+					"zh-cn": "重要：不兼容的配置变更"
+				},
+				"text": {
+					"en": "Version 0.2.0 replaces the single-device configuration with a device list. The previous configuration is not migrated automatically. Configure your Mill devices using configuredName and host (IP address or hostname). Device-specific states are now stored below separate device objects identified by their MAC addresses. Existing scripts, VIS widgets, Node-RED flows and other references to old state IDs must be updated. Please read the migration instructions in the README.",
+					"de": "Version 0.2.0 ersetzt die Einzelgeräte-Konfiguration durch eine Geräteliste. Die bisherige Konfiguration wird nicht automatisch übernommen. Konfiguriere deine Mill-Geräte mit configuredName und host (IP-Adresse oder Hostname). Gerätespezifische Datenpunkte liegen jetzt unter separaten Geräteobjekten, deren IDs auf den MAC-Adressen basieren. Bestehende Skripte, VIS-Widgets, Node-RED-Flows und andere Verweise auf alte Datenpunkt-IDs müssen angepasst werden. Bitte lies die Migrationshinweise in der README.",
+					"ru": "Версия 0.2.0 заменяет конфигурацию одного устройства списком устройств. Предыдущая конфигурация не переносится автоматически. Настройте устройства Mill с помощью configuredName и host (IP-адрес или имя хоста). Данные каждого устройства теперь находятся под отдельным объектом, идентифицируемым MAC-адресом. Необходимо обновить существующие скрипты, виджеты VIS, потоки Node-RED и другие ссылки на старые идентификаторы состояний. Инструкции по миграции приведены в README.",
+					"pt": "A versão 0.2.0 substitui a configuração de um único dispositivo por uma lista de dispositivos. A configuração anterior não é migrada automaticamente. Configure os dispositivos Mill utilizando configuredName e host (endereço IP ou nome do host). Os estados específicos de cada dispositivo passam a estar organizados sob objetos separados identificados pelo endereço MAC. É necessário atualizar os scripts, widgets VIS, fluxos Node-RED e outras referências aos antigos IDs de estado. Consulte as instruções de migração no README.",
+					"nl": "Versie 0.2.0 vervangt de configuratie voor één apparaat door een apparatenlijst. De bestaande configuratie wordt niet automatisch overgezet. Configureer je Mill-apparaten met configuredName en host (IP-adres of hostnaam). Apparaatspecifieke statussen staan nu onder afzonderlijke apparaatobjecten die worden geïdentificeerd door het MAC-adres. Bestaande scripts, VIS-widgets, Node-RED-flows en andere verwijzingen naar oude status-ID's moeten worden bijgewerkt. Lees de migratie-instructies in de README.",
+					"fr": "La version 0.2.0 remplace la configuration d’un appareil unique par une liste d’appareils. L’ancienne configuration n’est pas migrée automatiquement. Configurez vos appareils Mill à l’aide de configuredName et host (adresse IP ou nom d’hôte). Les états propres à chaque appareil sont désormais organisés sous des objets distincts identifiés par leur adresse MAC. Les scripts, widgets VIS, flux Node-RED et autres références aux anciens identifiants d’état doivent être mis à jour. Consultez les instructions de migration dans le README.",
+					"it": "La versione 0.2.0 sostituisce la configurazione del singolo dispositivo con un elenco di dispositivi. La configurazione precedente non viene migrata automaticamente. Configura i dispositivi Mill utilizzando configuredName e host (indirizzo IP o nome host). Gli stati specifici di ciascun dispositivo sono ora organizzati sotto oggetti separati identificati tramite indirizzo MAC. Gli script, i widget VIS, i flussi Node-RED e gli altri riferimenti ai vecchi ID degli stati devono essere aggiornati. Consulta le istruzioni per la migrazione nel README.",
+					"es": "La versión 0.2.0 sustituye la configuración de un único dispositivo por una lista de dispositivos. La configuración anterior no se migra automáticamente. Configura tus dispositivos Mill utilizando configuredName y host (dirección IP o nombre de host). Los estados específicos de cada dispositivo ahora se encuentran bajo objetos separados identificados por su dirección MAC. Es necesario actualizar los scripts, widgets VIS, flujos de Node-RED y otras referencias a los antiguos ID de estado. Consulta las instrucciones de migración en el README.",
+					"pl": "Wersja 0.2.0 zastępuje konfigurację pojedynczego urządzenia listą urządzeń. Dotychczasowa konfiguracja nie jest migrowana automatycznie. Skonfiguruj urządzenia Mill, podając configuredName oraz host (adres IP lub nazwę hosta). Dane dotyczące poszczególnych urządzeń znajdują się teraz pod osobnymi obiektami identyfikowanymi adresem MAC. Należy zaktualizować istniejące skrypty, widżety VIS, przepływy Node-RED i inne odwołania do starych identyfikatorów stanów. Instrukcje migracji znajdują się w README.",
+					"uk": "Версія 0.2.0 замінює конфігурацію одного пристрою списком пристроїв. Попередня конфігурація не переноситься автоматично. Налаштуйте пристрої Mill, вказавши configuredName та host (IP-адресу або ім’я хоста). Стани кожного пристрою тепер знаходяться під окремими об’єктами, ідентифікованими MAC-адресою. Необхідно оновити наявні скрипти, віджети VIS, потоки Node-RED та інші посилання на старі ідентифікатори станів. Інструкції з міграції наведені в README.",
+					"zh-cn": "0.2.0 版本将单设备配置替换为设备列表。原有配置不会自动迁移。请使用 configuredName 和 host（IP 地址或主机名）配置 Mill 设备。每个设备的数据点现在位于以其 MAC 地址标识的独立设备对象下。现有脚本、VIS 小部件、Node-RED 流程以及其他对旧状态 ID 的引用都需要更新。请参阅 README 中的迁移说明。"
+				},
+				"buttons": [
+					"agree",
+					"cancel"
+				],
+				"level": "warn"
+			}
+		],
 		"titleLang": {
 			"en": "Mill Heater",
 			"de": "Mill Heizungen",
@@ -160,7 +189,7 @@
 		]
 	},
 	"native": {
-		"host": "",
+		"devices": [],
 		"apiTimeout": 5,
 		"pollInterval1": 30,
 		"pollInterval2": 86400
@@ -180,17 +209,17 @@
 			"type": "state",
 			"common": {
 				"name": {
-					"en": "Connection",
-					"de": "Verbindung",
-					"ru": "Подключение",
-					"pt": "Ligação",
-					"nl": "Verbinding",
-					"fr": "Connexion",
-					"it": "Connessione",
-					"es": "Conexión",
-					"pl": "Połączenie",
-					"uk": "Підключення",
-					"zh-cn": "连接"
+					"en": "Devices connected",
+					"de": "Geräte verbunden",
+					"ru": "Приборы подключены",
+					"pt": "Dispositivos conectados",
+					"nl": "Apparaten verbonden",
+					"fr": "Appareils connectés",
+					"it": "Dispositivi connessi",
+					"es": "Dispositivos conectados",
+					"pl": "Urządzenia połączone",
+					"uk": "Пристрої підключені",
+					"zh-cn": "设备已连接"
 				},
 				"type": "boolean",
 				"role": "indicator.connected",
