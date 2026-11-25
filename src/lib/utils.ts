@@ -16,18 +16,7 @@
  */
 export function sanitizeLogMessage(value: string, maxLength = 500): string {
 	// eslint-disable-next-line no-control-regex -- Intentionally matches control characters to prevent CWE-117 log injection.
-	const sanitized = value.replace(/[\u0000-\u001F\u007F-\u009F\u2028\u2029]/g, char => {
-		if (char === "\r") {
-			return "\\r";
-		}
-		if (char === "\n") {
-			return "\\n";
-		}
-		if (char === "\t") {
-			return "\\t";
-		}
-		return `\\u${char.charCodeAt(0).toString(16).padStart(4, "0")}`;
-	});
+	const sanitized = value.replace(/[\u0000-\u001F\u007F-\u009F\u2028\u2029]+/g, " ");
 
 	const chars = Array.from(sanitized);
 	return chars.length > maxLength ? `${chars.slice(0, maxLength).join("")}…` : sanitized;
