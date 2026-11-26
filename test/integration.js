@@ -1922,7 +1922,7 @@ tests.integration(path.join(__dirname, ".."), {
                 this.timeout(10000);
                 const harness = getHarness();
                 const nextControlStatusRequest = mock.waitForRequest("GET", "/control-status");
-                operationMode = "Off";
+                operationMode = "OFF";
                 await nextControlStatusRequest;
                 await waitForState(
                     harness,
@@ -1963,7 +1963,7 @@ tests.integration(path.join(__dirname, ".."), {
                 mock = createDeviceMock({
                     macAddress: MAC_A,
                     modelName: "Mill Oil Heater",
-                    operationMode: "Off",
+                    operationMode: "OFF",
                 });
                 server = mock.server;
                 const port = await startTestServer(server);
@@ -2014,7 +2014,7 @@ tests.integration(path.join(__dirname, ".."), {
                 mock = createDeviceMock({
                     macAddress: MAC_A,
                     modelName: "Mill Oil Heater",
-                    operationMode: "Off",
+                    operationMode: "OFF",
                 });
                 server = mock.server;
                 const port = await startTestServer(server);
