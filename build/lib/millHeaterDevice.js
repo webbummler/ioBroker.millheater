@@ -699,7 +699,7 @@ class MillHeaterDevice {
     const currentPower = typeof data.current_power === "number" ? data.current_power : void 0;
     const lockActive = typeof data.lock_active === "string" ? data.lock_active : void 0;
     const openWindowActiveNow = typeof data.open_window_active_now === "string" ? data.open_window_active_now : void 0;
-    const operationMode = typeof data.operation_mode === "string" ? data.operation_mode : void 0;
+    const operationMode = typeof data.operation_mode === "string" ? data.operation_mode.replace(/^OFF$/i, "Off") : void 0;
     const rawAmbientTemperature = typeof data.raw_ambient_temperature === "number" ? Math.round(data.raw_ambient_temperature * 10) / 10 : void 0;
     const setTemperature = typeof data.set_temperature === "number" ? data.set_temperature : void 0;
     const switchedOn = typeof data.switched_on === "boolean" ? data.switched_on : void 0;

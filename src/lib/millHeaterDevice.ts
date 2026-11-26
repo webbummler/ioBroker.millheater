@@ -860,7 +860,8 @@ export class MillHeaterDevice {
 		const lockActive = typeof data.lock_active === "string" ? data.lock_active : undefined;
 		const openWindowActiveNow =
 			typeof data.open_window_active_now === "string" ? data.open_window_active_now : undefined;
-		const operationMode = typeof data.operation_mode === "string" ? data.operation_mode : undefined;
+		const operationMode =
+			typeof data.operation_mode === "string" ? data.operation_mode.replace(/^OFF$/i, "Off") : undefined;
 		const rawAmbientTemperature =
 			typeof data.raw_ambient_temperature === "number"
 				? Math.round(data.raw_ambient_temperature * 10) / 10
