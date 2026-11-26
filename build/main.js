@@ -206,8 +206,32 @@ class Millheater extends utils.Adapter {
       throw new Error("Cannot create device objects before the MAC address has been registered.");
     }
     await this.deviceTreeCleanupMutex.runExclusive(async () => {
+      const normalizedDeviceId = deviceId.toLowerCase();
+      const normalizedHost = device.configuredHost.trim().toLowerCase();
       const deviceIds = await this.getDeviceTreeRows();
-      if (!deviceIds.includes(deviceId.toLowerCase())) {
+      for (const existingDeviceId of deviceIds) {
+        if (existingDeviceId === normalizedDeviceId || this.devicesById.has(existingDeviceId)) {
+          continue;
+        }
+        const existingObject = await this.getObjectAsync(existingDeviceId);
+        if (!existingObject) {
+          continue;
+        }
+        const native = existingObject.native;
+        const existingHost = typeof native.host === "string" ? native.host.trim().toLowerCase() : "";
+        if (existingHost !== normalizedHost) {
+          continue;
+        }
+        await this.setState(`${existingDeviceId}.info.connection`, false, true);
+        await this.extendObject(existingDeviceId, {
+          native: {
+            host: "",
+            retiredAt: Date.now()
+          }
+        });
+        this.log.debug(`Retired previous Mill device tree ${existingDeviceId} after MAC change.`);
+      }
+      if (!deviceIds.includes(normalizedDeviceId)) {
         await this.cleanupDeviceTreesLocked(deviceIds, 1);
         const remainingDeviceIds = await this.getDeviceTreeRows();
         if (remainingDeviceIds.length >= MAX_DEVICE_TREES) {
