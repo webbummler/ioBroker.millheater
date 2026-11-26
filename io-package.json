@@ -1,8 +1,21 @@
 {
 	"common": {
 		"name": "millheater",
-		"version": "0.2.2",
+		"version": "0.2.3",
 		"news": {
+			"0.2.3": {
+				"en": "Security and reliability improvements, along with more robust device management.",
+				"de": "Verbesserungen bei Sicherheit und Zuverlässigkeit sowie eine robustere Geräteverwaltung.",
+				"ru": "Улучшения безопасности и надежности, а также более надежное управление устройствами.",
+				"pt": "Melhorias de segurança e fiabilidade, além de uma gestão de dispositivos mais robusta.",
+				"nl": "Verbeteringen op het gebied van beveiliging en betrouwbaarheid, en robuuster apparaatbeheer.",
+				"fr": "Améliorations de la sécurité et de la fiabilité, ainsi qu’une gestion des appareils plus robuste.",
+				"it": "Miglioramenti alla sicurezza e all’affidabilità, con una gestione dei dispositivi più robusta.",
+				"es": "Mejoras de seguridad y fiabilidad, además de una gestión de dispositivos más robusta.",
+				"pl": "Ulepszenia bezpieczeństwa i niezawodności oraz bardziej niezawodne zarządzanie urządzeniami.",
+				"uk": "Покращення безпеки та надійності, а також удосконалене керування пристроями.",
+				"zh-cn": "提升了安全性和可靠性，并改进了设备管理。"
+			},
 			"0.2.2": {
 				"en": "Security and reliability improvements",
 				"de": "Verbesserungen bei Sicherheit und Zuverlässigkeit",
