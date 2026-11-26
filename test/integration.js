@@ -389,7 +389,10 @@ async function seedDeviceTree(harness, macAddress, options = {}) {
     await harness.objects.setObjectAsync(root, {
         type: "device",
         common: { name: options.name ?? "Previously configured heater" },
-        native: { host: options.host ?? "127.0.0.1:10000" },
+        native: {
+            host: options.host ?? "127.0.0.1:10000",
+            ...(typeof options.retiredAt === "number" ? { retiredAt: options.retiredAt } : {}),
+        },
     });
     await harness.objects.setObjectAsync(`${root}.info`, {
         type: "channel",
@@ -750,7 +753,10 @@ tests.integration(path.join(__dirname, ".."), {
                     (await harness.states.getStateAsync(deviceState(MAC_OLD, "status.operation_key"))).val,
                     "keep-this-value",
                 );
-                assert.ok(await harness.objects.getObjectAsync(deviceRoot(MAC_OLD)));
+                const oldDeviceObject = await harness.objects.getObjectAsync(deviceRoot(MAC_OLD));
+                assert.ok(oldDeviceObject);
+                assert.strictEqual(oldDeviceObject.native.host, "");
+                assert.ok(typeof oldDeviceObject.native.retiredAt === "number");
             });
         });
 
@@ -883,10 +889,10 @@ tests.integration(path.join(__dirname, ".."), {
 
                 assert.ok(
                     harness.hasLog(
-                        /Mill API response from .*: Heater failure\\r\\nINFO: forged log entry/,
+                        /Mill API response from .*: Heater failure INFO: forged log entry/,
                         "error",
                     ),
-                    "Line breaks in external API responses must be escaped.",
+                    "Line breaks in external API responses must be replaced with spaces.",
                 );
                 assert.strictEqual(
                     harness.hasLog(/^INFO: forged log entry$/, "error"),
@@ -1525,7 +1531,10 @@ tests.integration(path.join(__dirname, ".."), {
             it("creates the new tree and keeps the previous tree offline with its values", async function () {
                 const harness = getHarness();
                 assert.ok(await harness.objects.getObjectAsync(deviceRoot(MAC_A)));
-                assert.ok(await harness.objects.getObjectAsync(deviceRoot(MAC_OLD)));
+                const oldDeviceObject = await harness.objects.getObjectAsync(deviceRoot(MAC_OLD));
+                assert.ok(oldDeviceObject);
+                assert.strictEqual(oldDeviceObject.native.host, "");
+                assert.ok(oldDeviceObject.native.retiredAt > 0);
                 assert.strictEqual(
                     (await harness.states.getStateAsync(deviceState(MAC_OLD, "info.connection"))).val,
                     false,
@@ -2213,8 +2222,14 @@ tests.integration(path.join(__dirname, ".."), {
                     true,
                     "The previously known MAC_A tree must become active again.",
                 );
-                assert.strictEqual(await harness.objects.getObjectAsync(deviceRoot(MAC_A)) !== null, true);
-                assert.strictEqual(await harness.objects.getObjectAsync(deviceRoot(MAC_B)) !== null, true);
+                const returnedDeviceA = await harness.objects.getObjectAsync(deviceRoot(MAC_A));
+                const retiredDeviceB = await harness.objects.getObjectAsync(deviceRoot(MAC_B));
+                assert.ok(returnedDeviceA);
+                assert.ok(retiredDeviceB);
+                assert.strictEqual(returnedDeviceA.native.retiredAt, 0);
+                assert.ok(returnedDeviceA.native.host);
+                assert.ok(retiredDeviceB.native.retiredAt > 0);
+                assert.strictEqual(retiredDeviceB.native.host, "");
 
                 const writesBeforeRetiredB = mock.countRequests("POST", "/set-temperature");
                 await mock.assertNoRequestAfter(async () => {
@@ -2380,6 +2395,113 @@ tests.integration(path.join(__dirname, ".."), {
                 );
             });
         });
+
+        suite("23 - Total device tree limit", getHarness => {
+            let server;
+            let historicalMacs;
+            let protectedMac;
+            let protectedHost;
+
+            before(async function () {
+                this.timeout(30000);
+                logSuiteStart("23 - Total device tree limit");
+                const harness = getHarness();
+                historicalMacs = Array.from({ length: 84 }, (_, index) => {
+                    const suffix = (index + 1).toString(16).padStart(4, "0");
+                    return `02:00:00:00:${suffix.slice(0, 2)}:${suffix.slice(2)}`;
+                });
+
+                const unavailableServer = http.createServer();
+                const unavailablePort = await startTestServer(unavailableServer);
+                await closeTestServer(unavailableServer);
+                protectedMac = "02:00:00:00:FF:FF";
+                protectedHost = `127.0.0.1:${unavailablePort}`;
+                await seedDeviceTree(harness, protectedMac, {
+                    host: protectedHost,
+                    retiredAt: 0,
+                    connected: false,
+                });
+
+                for (let index = 0; index < historicalMacs.length; index++) {
+                    await seedDeviceTree(harness, historicalMacs[index], {
+                        host: "",
+                        retiredAt: index + 1,
+                        operationKey: `historical-${index + 1}`,
+                    });
+                }
+
+                const mock = createDeviceMock({ macAddress: MAC_A, modelName: "generic" });
+                server = mock.server;
+                const port = await startTestServer(server);
+                await configureHarness(harness, [
+                    deviceConfig("New device", port),
+                    deviceConfig("Protected offline device", unavailablePort),
+                ]);
+                await harness.startAdapterAndWait();
+                await waitForState(
+                    harness,
+                    deviceState(MAC_A, "status.operation_key"),
+                    state => state.val === "test-operation",
+                );
+                await waitForState(harness, deviceState(MAC_A, "info.connection"), state => state.val === true);
+            });
+
+            after(async () => closeTestServer(server));
+
+            it("removes the oldest historical tree before creating a new one", async function () {
+                const harness = getHarness();
+                const oldestTree = await harness.objects.getObjectAsync(deviceRoot(historicalMacs[0]));
+                const secondOldestTree = await harness.objects.getObjectAsync(deviceRoot(historicalMacs[1]));
+                const thirdOldestTree = await harness.objects.getObjectAsync(deviceRoot(historicalMacs[2]));
+                const newestTree = await harness.objects.getObjectAsync(deviceRoot(historicalMacs[historicalMacs.length - 1]));
+                const newDeviceTree = await harness.objects.getObjectAsync(deviceRoot(MAC_A));
+                const protectedTree = await harness.objects.getObjectAsync(deviceRoot(protectedMac));
+                const deletedState = await harness.objects.getObjectAsync(
+                    deviceState(historicalMacs[0], "status.operation_key"),
+                );
+
+                assert.strictEqual(oldestTree, null, "Startup must delete the oldest historical tree first.");
+                assert.strictEqual(secondOldestTree, null, "Creation must delete the next-oldest historical tree.");
+                assert.strictEqual(deletedState, null, "Deleted trees' child states must also be removed.");
+                assert.ok(thirdOldestTree, "The third-oldest historical tree must be retained.");
+                assert.ok(newestTree, "The newest historical tree must be retained.");
+                assert.ok(newDeviceTree, "The newly identified device tree must be created.");
+                assert.strictEqual(newDeviceTree.native.retiredAt, 0, "The active device must not be marked historical.");
+                assert.ok(newDeviceTree.native.host, "The active device must retain its configured host.");
+                assert.ok(protectedTree, "An active configured device tree must never be deleted.");
+                assert.strictEqual(protectedTree.native.host, protectedHost);
+                assert.strictEqual(protectedTree.native.retiredAt, 0);
+                assert.strictEqual(
+                    (await harness.states.getStateAsync(deviceState(protectedMac, "info.connection"))).val,
+                    false,
+                    "The protected configured tree must remain even while the device is offline.",
+                );
+            });
+        });
+
+        suite("24 - Configured device limit", getHarness => {
+            before(async function () {
+                this.timeout(15000);
+                logSuiteStart("24 - Configured device limit");
+                const harness = getHarness();
+                const devices = Array.from({ length: 85 }, (_, index) => ({
+                    userDefinedName: `Device ${index + 1}`,
+                    host: `192.0.2.${index + 1}`,
+                    pollWhenOff: true,
+                }));
+                await configureHarness(harness, devices);
+                await harness.startAdapterAndWait().catch(() => undefined);
+            });
+
+            it("rejects more than 84 configured devices", function () {
+                const harness = getHarness();
+                assert.ok(
+                    harness.hasLog(/A maximum of 84 Mill devices can be configured/, "error"),
+                    "The adapter must reject a configuration with more than 84 devices.",
+                );
+            });
+        });
+
 
     },
 });
