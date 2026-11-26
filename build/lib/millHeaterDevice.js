@@ -287,7 +287,7 @@ class MillHeaterDevice {
     await this.updateFastData();
     this.isInitialized = true;
     this.startPolling();
-    this.adapter.log.info(`Mill device ${this.userDefinedName} (${this.deviceId}) initialized at ${this.host}.`);
+    this.adapter.log.info(`Mill device ${this.userDefinedName} (${this.deviceId} initialized at ${this.host}.`);
   }
   scheduleDiscoveryRetry() {
     if (this.isUnloading || this.isDisabled || this.isInitialized || this.discoveryRetryTimer !== void 0) {
@@ -306,7 +306,7 @@ class MillHeaterDevice {
   async acceptMacAddress(macAddress) {
     const newDeviceId = normalizeMacAddress(macAddress);
     if (!newDeviceId) {
-      this.adapter.log.warn(`Invalid MAC address reported by ${this.host}: ${macAddress}`);
+      this.adapter.log.warn(`Invalid MAC address reported by ${this.host}: ${(0, import_utils.sanitizeLogMessage)(macAddress)}`);
       return this.isObjectsCreated && this.deviceId !== void 0;
     }
     if (this.deviceId === newDeviceId && this.isObjectsCreated) {
@@ -315,7 +315,9 @@ class MillHeaterDevice {
     const previousDeviceId = this.deviceId;
     const accepted = await this.callbacks.onIdentified(this, newDeviceId, previousDeviceId);
     if (!accepted) {
-      this.disable(`MAC address ${macAddress} is already assigned to another configured device.`);
+      this.disable(
+        `MAC address ${(0, import_utils.sanitizeLogMessage)(macAddress)} is already assigned to another configured device.`
+      );
       return false;
     }
     this.deviceId = newDeviceId;
@@ -324,7 +326,7 @@ class MillHeaterDevice {
     this.isObjectsCreated = true;
     this.resumeApiRequests();
     this.adapter.log.info(
-      previousDeviceId && previousDeviceId !== newDeviceId ? `Mill device at ${this.host} changed MAC address: ${previousDeviceId} -> ${newDeviceId}.` : `Mill device ${this.userDefinedName} identified with MAC address ${macAddress}.`
+      previousDeviceId && previousDeviceId !== newDeviceId ? `Mill device at ${this.host} changed MAC address: ${previousDeviceId} -> ${newDeviceId}.` : `Mill device ${this.userDefinedName} identified with MAC address ${(0, import_utils.sanitizeLogMessage)(macAddress)}.`
     );
     return true;
   }
@@ -334,7 +336,7 @@ class MillHeaterDevice {
     if (this.apiConnected !== false) {
       this.updateApiConnectionState(false);
     }
-    this.adapter.log.error(`Mill device ${this.userDefinedName} (${this.host}) disabled: ${reason}`);
+    this.adapter.log.error(`Mill device ${this.userDefinedName} ${this.host}) disabled: ${reason}`);
   }
   updateInfoStates() {
     if (!this.deviceId) {
@@ -360,7 +362,7 @@ class MillHeaterDevice {
     if (previousState === connected) {
       if (!connected && error) {
         this.adapter.log.debug(
-          `Mill API request${path ? ` for ${path}` : ""} at ${this.host} failed: ${error.message}`
+          `Mill API request${path ? ` for ${path}` : ""} at ${this.host} failed: ${(0, import_utils.sanitizeLogMessage)(String(error.message))}`
         );
       }
       return;
@@ -375,7 +377,7 @@ class MillHeaterDevice {
     }
     const reason = error ? `${path ? `${path}: ` : ""}${error.message}` : "Unknown error";
     this.adapter.log.warn(
-      `${previousState === true ? "Mill device connection lost" : "Mill device is not reachable"} (${this.userDefinedName}, ${this.host}): ${reason}`
+      `${previousState === true ? "Mill device connection lost" : "Mill device is not reachable"} (${this.userDefinedName}, ${this.host}): ${(0, import_utils.sanitizeLogMessage)(reason)}`
     );
   }
   /**
@@ -396,7 +398,9 @@ class MillHeaterDevice {
     }
     try {
       const result = skipIfBusy ? await (0, import_async_mutex.tryAcquire)(this.apiMutex).runExclusive(() => this.performApiRequest(path, method, body)) : await this.apiMutex.runExclusive(() => this.performApiRequest(path, method, body));
-      this.adapter.log.debug(`API response for ${this.host} "${path}": ${JSON.stringify(result)}`);
+      this.adapter.log.debug(
+        `API response for ${this.host} "${path}": ${(0, import_utils.sanitizeLogMessage)(JSON.stringify(result))}`
+      );
       return result;
     } catch (error) {
       if (error === import_async_mutex.E_ALREADY_LOCKED) {
@@ -477,9 +481,7 @@ class MillHeaterDevice {
               `Mill API request failed for ${path} at ${this.host}: HTTP ${statusCode != null ? statusCode : "unknown"}.`
             );
             if (data.trim()) {
-              this.adapter.log.error(
-                `Mill API response from ${(0, import_utils.sanitizeLogMessage)(this.host)}: ${(0, import_utils.sanitizeLogMessage)(data)}`
-              );
+              this.adapter.log.error(`Mill API response from ${this.host}: ${(0, import_utils.sanitizeLogMessage)(data)}`);
             }
             finish(void 0);
             return;
@@ -501,7 +503,7 @@ class MillHeaterDevice {
             const dataRecord = parsed;
             if (dataRecord.status !== "ok") {
               this.adapter.log.error(
-                `Mill API rejected request to ${path} at ${this.host}: status=${String(dataRecord.status)}.`
+                `Mill API rejected request to ${path} at ${this.host}: status=${(0, import_utils.sanitizeLogMessage)(String(dataRecord.status))}.`
               );
               finish(void 0);
               return;
@@ -775,12 +777,16 @@ class MillHeaterDevice {
   async setOperationMode(value) {
     const validModes = ["Off", "Weekly program", "Independent device", "Control individually"];
     if (!validModes.includes(value)) {
-      this.adapter.log.warn(`Invalid operation mode for ${this.userDefinedName}: "${value}".`);
+      this.adapter.log.warn(
+        `Invalid operation mode for ${this.userDefinedName}: "${(0, import_utils.sanitizeLogMessage)(value)}".`
+      );
       return;
     }
     const data = await this.callApi("/operation-mode", false, "POST", { mode: value });
     if (!data) {
-      this.adapter.log.error(`Failed to set operation mode for ${this.userDefinedName} to "${value}".`);
+      this.adapter.log.error(
+        `Failed to set operation mode for ${this.userDefinedName} to "${(0, import_utils.sanitizeLogMessage)(value)}".`
+      );
       return;
     }
     this.setStateChanged("control-status.operation_mode", value);

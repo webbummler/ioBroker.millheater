@@ -21,13 +21,17 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
   mod
 ));
+var import_async_mutex = require("async-mutex");
 var utils = __toESM(require("@iobroker/adapter-core"));
 var import_millHeaterDevice = require("./lib/millHeaterDevice");
 var import_deviceStates = require("./lib/deviceStates");
+const MAX_DEVICE_TREES = 2 * 42;
 class Millheater extends utils.Adapter {
   devices = [];
   devicesById = /* @__PURE__ */ new Map();
+  deviceTreeCleanupMutex = new import_async_mutex.Mutex();
   isUnloading = false;
+  configuredDeviceHosts = /* @__PURE__ */ new Set();
   // Must match the limits in admin/jsonConfig.json
   apiTimeoutMin = 1;
   apiTimeoutMax = 60;
@@ -77,6 +81,13 @@ class Millheater extends utils.Adapter {
       return;
     }
     const configuredDevices = this.readDeviceConfiguration();
+    if (configuredDevices.length > MAX_DEVICE_TREES) {
+      const message = `A maximum of ${MAX_DEVICE_TREES} Mill devices can be configured.`;
+      this.log.error(message);
+      this.terminate(message, utils.EXIT_CODES.INVALID_ADAPTER_CONFIG);
+      return;
+    }
+    this.configuredDeviceHosts = new Set(configuredDevices.map((device) => device.host.toLowerCase()));
     if (configuredDevices.length === 0) {
       const message = "At least one Mill device must be configured.";
       this.log.error(message);
@@ -194,65 +205,156 @@ class Millheater extends utils.Adapter {
     if (!deviceId) {
       throw new Error("Cannot create device objects before the MAC address has been registered.");
     }
-    await this.setObjectNotExists(deviceId, {
-      type: "device",
-      common: {
-        name: device.userDefinedName,
-        statusStates: {
-          onlineId: "info.connection"
+    await this.deviceTreeCleanupMutex.runExclusive(async () => {
+      const deviceIds = await this.getDeviceTreeRows();
+      if (!deviceIds.includes(deviceId.toLowerCase())) {
+        await this.cleanupDeviceTreesLocked(deviceIds, 1);
+        const remainingDeviceIds = await this.getDeviceTreeRows();
+        if (remainingDeviceIds.length >= MAX_DEVICE_TREES) {
+          throw new Error(
+            `Cannot create device tree for ${deviceId}: the limit of ${MAX_DEVICE_TREES} device trees has been reached and no historical tree can safely be removed.`
+          );
         }
-      },
-      native: { host: device.configuredHost }
-    });
-    await this.extendObject(deviceId, {
-      common: { name: device.userDefinedName },
-      native: { host: device.configuredHost }
-    });
-    for (const [id, name] of import_deviceStates.DEVICE_CHANNELS) {
-      await this.setObjectNotExists(`${deviceId}.${id}`, {
-        type: "channel",
-        common: { name },
-        native: {}
+      }
+      await this.setObjectNotExists(deviceId, {
+        type: "device",
+        common: {
+          name: device.userDefinedName,
+          statusStates: {
+            onlineId: "info.connection"
+          }
+        },
+        native: {
+          host: device.configuredHost,
+          retiredAt: 0
+        }
       });
+      await this.extendObject(deviceId, {
+        common: { name: device.userDefinedName },
+        native: {
+          host: device.configuredHost,
+          retiredAt: 0
+        }
+      });
+      for (const [id, name] of import_deviceStates.DEVICE_CHANNELS) {
+        await this.setObjectNotExists(`${deviceId}.${id}`, {
+          type: "channel",
+          common: { name },
+          native: {}
+        });
+      }
+      for (const state of import_deviceStates.DEVICE_STATES) {
+        if (!device.isStateSupported(state.id)) {
+          continue;
+        }
+        await this.setObjectNotExists(`${deviceId}.${state.id}`, {
+          type: "state",
+          common: state.common,
+          native: {}
+        });
+      }
+      this.setStateChanged(`${deviceId}.info.connection`, false, true);
+    });
+  }
+  /**
+   * Remove the oldest historical device trees if the configured limit would be exceeded.
+   *
+   * Must be called while holding deviceTreeCleanupMutex.
+   *
+   * @param deviceIds - Existing MAC-based device IDs.
+   * @param additionalTrees - Number of additional trees that need capacity.
+   * @returns Number of deleted device trees.
+   */
+  async cleanupDeviceTreesLocked(deviceIds, additionalTrees = 0) {
+    const excess = deviceIds.length + additionalTrees - MAX_DEVICE_TREES;
+    if (excess <= 0) {
+      return 0;
     }
-    for (const state of import_deviceStates.DEVICE_STATES) {
-      if (!device.isStateSupported(state.id)) {
+    const candidates = [];
+    for (const deviceId of deviceIds) {
+      if (this.devicesById.has(deviceId)) {
         continue;
       }
-      await this.setObjectNotExists(`${deviceId}.${state.id}`, {
-        type: "state",
-        common: state.common,
-        native: {}
-      });
+      const object = await this.getObjectAsync(deviceId);
+      if (!object) {
+        continue;
+      }
+      const native = typeof object.native === "object" ? object.native : {};
+      const retiredAt = typeof native.retiredAt === "number" && Number.isFinite(native.retiredAt) ? native.retiredAt : 0;
+      const host = typeof native.host === "string" ? native.host.trim().toLowerCase() : "";
+      if (retiredAt <= 0) {
+        continue;
+      }
+      if (host && this.configuredDeviceHosts.has(host)) {
+        continue;
+      }
+      candidates.push({ id: deviceId, retiredAt });
     }
-    this.setStateChanged(`${deviceId}.info.connection`, false, true);
+    candidates.sort((a, b) => a.retiredAt - b.retiredAt);
+    const toDelete = candidates.slice(0, excess);
+    for (const candidate of toDelete) {
+      await this.delObjectAsync(candidate.id, { recursive: true });
+      this.log.info(`Removed historical Mill device tree ${candidate.id}.`);
+    }
+    if (toDelete.length < excess) {
+      this.log.warn(
+        `Device tree limit of ${MAX_DEVICE_TREES} cannot be reached: ${excess - toDelete.length} additional tree(s) could not be removed because no safe historical candidates were available. Active device trees were preserved.`
+      );
+    }
+    return toDelete.length;
+  }
+  /** Return all MAC-based device roots belonging to this adapter instance. */
+  async getDeviceTreeRows() {
+    const namespacePrefix = `${this.namespace}.`;
+    const result = await this.getObjectViewAsync("system", "device", {
+      startkey: namespacePrefix,
+      endkey: `${namespacePrefix}\u9999`
+    });
+    return result.rows.map((row) => row.id).filter(
+      (id) => typeof id === "string" && id.startsWith(namespacePrefix) && /^[0-9a-f]{12}$/i.test(id.slice(namespacePrefix.length))
+    ).map((id) => id.slice(namespacePrefix.length).toLowerCase());
   }
   /** Set every previously created MAC-based device tree offline at adapter startup. */
   async setExistingDeviceTreesOffline() {
-    const namespacePrefix = `${this.namespace}.`;
     try {
-      const result = await this.getObjectViewAsync("system", "device", {
-        startkey: namespacePrefix,
-        endkey: `${namespacePrefix}\u9999`
+      await this.deviceTreeCleanupMutex.runExclusive(async () => {
+        const deviceIds = await this.getDeviceTreeRows();
+        const offlineWrites = [];
+        for (const deviceId of deviceIds) {
+          const object = await this.getObjectAsync(deviceId);
+          if (object) {
+            const native = typeof object.native === "object" ? object.native : {};
+            const host = typeof native.host === "string" ? native.host.trim().toLowerCase() : "";
+            const currentRetiredAt = typeof native.retiredAt === "number" && Number.isFinite(native.retiredAt) ? native.retiredAt : 0;
+            if (host && this.configuredDeviceHosts.has(host)) {
+              if (currentRetiredAt !== 0) {
+                await this.extendObject(deviceId, {
+                  native: { retiredAt: 0 }
+                });
+              }
+            } else {
+              const retiredAt = currentRetiredAt > 0 ? currentRetiredAt : 1;
+              if (host || currentRetiredAt <= 0) {
+                await this.extendObject(deviceId, {
+                  native: {
+                    host: "",
+                    retiredAt
+                  }
+                });
+              }
+            }
+          }
+          offlineWrites.push(
+            this.setState(`${deviceId}.info.connection`, false, true).then(() => void 0).catch((error) => {
+              this.log.warn(
+                `Could not set existing Mill device ${deviceId} offline: ${error instanceof Error ? error.message : String(error)}`
+              );
+            })
+          );
+        }
+        await Promise.all(offlineWrites);
+        await this.cleanupDeviceTreesLocked(deviceIds);
       });
-      const offlineWrites = [];
-      for (const row of result.rows) {
-        if (typeof row.id !== "string" || !row.id.startsWith(namespacePrefix)) {
-          continue;
-        }
-        const deviceId = row.id.slice(namespacePrefix.length);
-        if (!/^[0-9a-f]{12}$/i.test(deviceId)) {
-          continue;
-        }
-        offlineWrites.push(
-          this.setState(`${deviceId}.info.connection`, false, true).then(() => void 0).catch((error) => {
-            this.log.warn(
-              `Could not set existing Mill device ${deviceId} offline: ${error instanceof Error ? error.message : String(error)}`
-            );
-          })
-        );
-      }
-      await Promise.all(offlineWrites);
     } catch (error) {
       this.log.warn(
         `Could not set existing Mill device trees offline: ${error instanceof Error ? error.message : String(error)}`
@@ -279,6 +381,12 @@ class Millheater extends utils.Adapter {
       );
       if (previousDeviceId && previousDeviceId.toLowerCase() !== normalizedDeviceId) {
         await this.setState(`${previousDeviceId}.info.connection`, false, true);
+        await this.extendObject(previousDeviceId, {
+          native: {
+            host: "",
+            retiredAt: Date.now()
+          }
+        });
         if (this.devicesById.get(previousDeviceId.toLowerCase()) === device) {
           this.devicesById.delete(previousDeviceId.toLowerCase());
         }
@@ -290,7 +398,12 @@ class Millheater extends utils.Adapter {
       this.log.debug(`MAC change: setting ${oldConnectionStateId} to false.`);
       await this.setState(oldConnectionStateId, false, true);
       this.log.debug(`MAC change: setState completed for ${oldConnectionStateId}.`);
-      await this.extendObject(previousDeviceId, { native: { host: "" } });
+      await this.extendObject(previousDeviceId, {
+        native: {
+          host: "",
+          retiredAt: Date.now()
+        }
+      });
       this.log.debug(`MAC change: extendObject completed for ${previousDeviceId}.`);
       if (this.devicesById.get(previousDeviceId.toLowerCase()) === device) {
         this.devicesById.delete(previousDeviceId.toLowerCase());

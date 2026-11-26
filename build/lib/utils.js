@@ -22,18 +22,7 @@ __export(utils_exports, {
 });
 module.exports = __toCommonJS(utils_exports);
 function sanitizeLogMessage(value, maxLength = 500) {
-  const sanitized = value.replace(/[\u0000-\u001F\u007F-\u009F\u2028\u2029]/g, (char) => {
-    if (char === "\r") {
-      return "\\r";
-    }
-    if (char === "\n") {
-      return "\\n";
-    }
-    if (char === "	") {
-      return "\\t";
-    }
-    return `\\u${char.charCodeAt(0).toString(16).padStart(4, "0")}`;
-  });
+  const sanitized = value.replace(/[\u0000-\u001F\u007F-\u009F\u2028\u2029]+/g, " ");
   const chars = Array.from(sanitized);
   return chars.length > maxLength ? `${chars.slice(0, maxLength).join("")}\u2026` : sanitized;
 }

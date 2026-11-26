@@ -371,7 +371,7 @@ export class MillHeaterDevice {
 			this.discoveryRetryTimer = undefined;
 			void this.tryInitialize().catch(error => {
 				this.adapter.log.error(
-					`Device initialization failed for ${sanitizeLogMessage(this.host)}: ${error instanceof Error ? error.message : String(error)}`,
+					`Device initialization failed for ${this.host}: ${error instanceof Error ? error.message : String(error)}`,
 				);
 				this.scheduleDiscoveryRetry();
 			});
@@ -455,7 +455,7 @@ export class MillHeaterDevice {
 		if (previousState === connected) {
 			if (!connected && error) {
 				this.adapter.log.debug(
-					`Mill API request${path ? ` for ${path}` : ""} at ${this.host} failed: ${sanitizeLogMessage(error.message)}`,
+					`Mill API request${path ? ` for ${path}` : ""} at ${this.host} failed: ${sanitizeLogMessage(String(error.message))}`,
 				);
 			}
 			return;
@@ -964,7 +964,7 @@ export class MillHeaterDevice {
 		const data = await this.callApi("/operation-mode", false, "POST", { mode: value });
 		if (!data) {
 			this.adapter.log.error(
-				`Failed to set operation mode for ${sanitizeLogMessage(this.userDefinedName)} to "${sanitizeLogMessage(value)}".`,
+				`Failed to set operation mode for ${this.userDefinedName} to "${sanitizeLogMessage(value)}".`,
 			);
 			return;
 		}
